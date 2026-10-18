@@ -1,0 +1,968 @@
+{
+  "02-Core-Concepts/02-Cluster-Architecture": [
+    {
+      "title": "Kubernetes cluster architecture – video walkthrough",
+      "youtubeId": "TlHvYWVUZyc"
+    }
+  ],
+  "02-Core-Concepts/03-Docker-vs-ContainerD": [
+    {
+      "title": "Docker vs containerd – video walkthrough",
+      "youtubeId": "21onkZfL2yM"
+    }
+  ],
+  "02-Core-Concepts/04-ETCD-For-Beginners": [
+    {
+      "title": "What is etcd in Kubernetes? – topic video",
+      "youtubeId": "y3UXozwoUq8"
+    }
+  ],
+  "02-Core-Concepts/05-ETCD-in-Kubernetes": [
+    {
+      "title": "How Kubernetes uses etcd – topic video",
+      "youtubeId": "ClcOGuQMtnY"
+    }
+  ],
+  "02-Core-Concepts/06-Kube-API-Server": [
+    {
+      "title": "kube-apiserver explained – topic video",
+      "youtubeId": "JNe1gzVCMIo"
+    }
+  ],
+  "02-Core-Concepts/07-Kube-Controller-Manager": [
+    {
+      "title": "Kube Controller Manager – topic video",
+      "youtubeId": "qomvM_LEJhQ"
+    }
+  ],
+  "02-Core-Concepts/08-Kube-Scheduler": [
+    {
+      "title": "How the Kubernetes Scheduler works – topic video",
+      "youtubeId": "Qoe3P7iRENI"
+    }
+  ],
+  "02-Core-Concepts/09-Kubelet": [
+    {
+      "title": "Kubelet in Kubernetes – topic video",
+      "youtubeId": "JOJevE39uiI"
+    }
+  ],
+  "02-Core-Concepts/10-Kube-Proxy": [
+    {
+      "title": "Understanding kube-proxy – topic video",
+      "youtubeId": "bUPC1BdPHHA"
+    }
+  ],
+  "02-Core-Concepts/11-Pods": [
+    {
+      "title": "What is a Pod in Kubernetes? – topic video",
+      "youtubeId": "wscVv_feF-w"
+    }
+  ],
+  "02-Core-Concepts/13-Practice-Test-PODs": [
+    {
+      "title": "What is a Pod in Kubernetes? – topic video",
+      "youtubeId": "wscVv_feF-w"
+    }
+  ],
+  "02-Core-Concepts/14-ReplicaSets": [
+    {
+      "title": "ReplicaSets explained in 100 seconds – topic video",
+      "youtubeId": "f4hKJ0NXud8"
+    }
+  ],
+  "02-Core-Concepts/15-Practice-Tests-ReplicaSet": [
+    {
+      "title": "ReplicaSets explained in 100 seconds – topic video",
+      "youtubeId": "f4hKJ0NXud8"
+    }
+  ],
+  "02-Core-Concepts/16-Deployments": [
+    {
+      "title": "Kubernetes Deployments explained – topic video",
+      "youtubeId": "puCJaUpOOiY"
+    }
+  ],
+  "02-Core-Concepts/17-Practice-Tests-Deployments": [
+    {
+      "title": "Kubernetes Deployments explained – topic video",
+      "youtubeId": "puCJaUpOOiY"
+    }
+  ],
+  "02-Core-Concepts/18-Namespaces": [
+    {
+      "title": "Kubernetes namespaces explained – topic video",
+      "youtubeId": "S7F4XcmvhpM"
+    }
+  ],
+  "02-Core-Concepts/19-Practice-Test-Namespaces": [
+    {
+      "title": "Kubernetes namespaces explained – topic video",
+      "youtubeId": "S7F4XcmvhpM"
+    }
+  ],
+  "02-Core-Concepts/20-Services": [
+    {
+      "title": "Kubernetes Services explained (ClusterIP, NodePort, LoadBalancer) – topic video",
+      "youtubeId": "BYZgA2BBt4s"
+    }
+  ],
+  "02-Core-Concepts/21-Services-ClusterIP": [
+    {
+      "title": "Kubernetes Services explained (ClusterIP, NodePort, LoadBalancer) – topic video",
+      "youtubeId": "BYZgA2BBt4s"
+    }
+  ],
+  "02-Core-Concepts/22-Practice-Test-Services": [
+    {
+      "title": "Kubernetes Services explained (ClusterIP, NodePort, LoadBalancer) – topic video",
+      "youtubeId": "BYZgA2BBt4s"
+    }
+  ],
+  "02-Core-Concepts/23-Imperative-Commands-with-kubectl": [
+    {
+      "title": "Imperative commands for the CKA exam – topic video",
+      "youtubeId": "dlp4YuJ6jwk"
+    }
+  ],
+  "02-Core-Concepts/24-Practice-Test-Imperative-Commands": [
+    {
+      "title": "Imperative commands for the CKA exam – topic video",
+      "youtubeId": "dlp4YuJ6jwk"
+    }
+  ],
+  "03-Scheduling/02-Manual-Scheduling": [
+    {
+      "title": "Kubernetes scheduling: nodeName vs nodeSelector – topic video",
+      "youtubeId": "4xTGvicdjuQ"
+    }
+  ],
+  "03-Scheduling/03-Practice-Test-Manual-Scheduling": [
+    {
+      "title": "Kubernetes scheduling: nodeName vs nodeSelector – topic video",
+      "youtubeId": "4xTGvicdjuQ"
+    }
+  ],
+  "03-Scheduling/04-Labels-and-Selectors": [
+    {
+      "title": "Labels and selectors explained – topic video",
+      "youtubeId": "3I_djgcHoDM"
+    }
+  ],
+  "03-Scheduling/05-Practice-Test-Labels-and-Selectors": [
+    {
+      "title": "Labels and selectors explained – topic video",
+      "youtubeId": "3I_djgcHoDM"
+    }
+  ],
+  "03-Scheduling/06-Taints-and-Tolerations": [
+    {
+      "title": "Taints and tolerations explained – topic video",
+      "youtubeId": "4JoUfE3uqoE"
+    }
+  ],
+  "03-Scheduling/07-Practice-Test-Taints-and-Tolerations": [
+    {
+      "title": "Taints and tolerations explained – topic video",
+      "youtubeId": "4JoUfE3uqoE"
+    }
+  ],
+  "03-Scheduling/08-Node-Selectors": [
+    {
+      "title": "How to use nodeSelector – topic video",
+      "youtubeId": "TFAASAfO_gg"
+    }
+  ],
+  "03-Scheduling/09-Node-Affinity": [
+    {
+      "title": "Node affinity explained – topic video",
+      "youtubeId": "FZGr3nAEe-0"
+    }
+  ],
+  "03-Scheduling/10-Practice-Test-Node-Affinity": [
+    {
+      "title": "Node affinity explained – topic video",
+      "youtubeId": "FZGr3nAEe-0"
+    }
+  ],
+  "03-Scheduling/11.Taints-and-Tolerations-vs-Node-Affinity": [
+    {
+      "title": "nodeSelector vs node affinity vs taints and tolerations – topic video",
+      "youtubeId": "A9phy8irRXY"
+    }
+  ],
+  "03-Scheduling/12-Resource-Limits": [
+    {
+      "title": "Pod requests and limits explained – topic video",
+      "youtubeId": "lKH1K5R3kqg"
+    }
+  ],
+  "03-Scheduling/13-Practice-Test-Resource-Limits": [
+    {
+      "title": "Pod requests and limits explained – topic video",
+      "youtubeId": "lKH1K5R3kqg"
+    }
+  ],
+  "03-Scheduling/14-DaemonSets": [
+    {
+      "title": "DaemonSets explained – topic video",
+      "youtubeId": "VOlgRYfMe8U"
+    }
+  ],
+  "03-Scheduling/15-Practice-Test-DaemonSets": [
+    {
+      "title": "DaemonSets explained – topic video",
+      "youtubeId": "VOlgRYfMe8U"
+    }
+  ],
+  "03-Scheduling/16-Static-Pods": [
+    {
+      "title": "Static pods explained – topic video",
+      "youtubeId": "-q4l7i6iglE"
+    }
+  ],
+  "03-Scheduling/17-Practice-Test-StaticPods": [
+    {
+      "title": "Static pods explained – topic video",
+      "youtubeId": "-q4l7i6iglE"
+    }
+  ],
+  "03-Scheduling/18-Multiple-Schedulers": [
+    {
+      "title": "Kubernetes multi-scheduler demo – topic video",
+      "youtubeId": "MqZCp0ZRFCE"
+    }
+  ],
+  "03-Scheduling/19-Practice-Test-Multiple-Schedulers": [
+    {
+      "title": "Kubernetes multi-scheduler demo – topic video",
+      "youtubeId": "MqZCp0ZRFCE"
+    }
+  ],
+  "03-Scheduling/20-Configuring-Kubernetes-Schedulers": [
+    {
+      "title": "Scheduling deep dive – topic video",
+      "youtubeId": "w0biUD3gL_4"
+    }
+  ],
+  "04-Logging-and-Monitoring/02-Monitor-Cluster-Components": [
+    {
+      "title": "Metrics Server explained – topic video",
+      "youtubeId": "lyCmecLpq_Y"
+    }
+  ],
+  "04-Logging-and-Monitoring/03-Practice-Test-Monitor-Cluster-Components": [
+    {
+      "title": "Metrics Server explained – topic video",
+      "youtubeId": "lyCmecLpq_Y"
+    }
+  ],
+  "04-Logging-and-Monitoring/04-Managing-Application-Logs": [
+    {
+      "title": "kubectl logs: viewing container logs – topic video",
+      "youtubeId": "8ivF18Dxcgs"
+    }
+  ],
+  "04-Logging-and-Monitoring/06-Practice-Test-Managing-Application-Logs": [
+    {
+      "title": "kubectl logs: viewing container logs – topic video",
+      "youtubeId": "8ivF18Dxcgs"
+    }
+  ],
+  "05-Application-Lifecycle-Management/02-RollingUpdates-and-Rollback": [
+    {
+      "title": "Rolling updates and rollbacks – topic video",
+      "youtubeId": "2iKgnUZvsDM"
+    }
+  ],
+  "05-Application-Lifecycle-Management/03-Practice-Test-RollingUpdates-Rollback": [
+    {
+      "title": "Rolling updates and rollbacks – topic video",
+      "youtubeId": "2iKgnUZvsDM"
+    }
+  ],
+  "05-Application-Lifecycle-Management/04-Commands-and-Arguments-in-Docker": [
+    {
+      "title": "ENTRYPOINT vs CMD in Docker – topic video",
+      "youtubeId": "C1GE07UEFDo"
+    }
+  ],
+  "05-Application-Lifecycle-Management/05-Commands-and-Arguments-in-Kubernetes": [
+    {
+      "title": "Kubernetes commands and arguments – topic video",
+      "youtubeId": "nivQlV90c8k"
+    }
+  ],
+  "05-Application-Lifecycle-Management/06-Practice-Test-Commands-and-Arguments": [
+    {
+      "title": "Kubernetes commands and arguments – topic video",
+      "youtubeId": "nivQlV90c8k"
+    }
+  ],
+  "05-Application-Lifecycle-Management/08-Configure-ConfigMaps-in-Applications": [
+    {
+      "title": "ConfigMaps explained – topic video",
+      "youtubeId": "JMayHZPdYfM"
+    }
+  ],
+  "05-Application-Lifecycle-Management/09-Practice-Test-Env-Variables": [
+    {
+      "title": "ConfigMaps explained – topic video",
+      "youtubeId": "JMayHZPdYfM"
+    }
+  ],
+  "05-Application-Lifecycle-Management/10.Secrets": [
+    {
+      "title": "Kubernetes Secrets explained – topic video",
+      "youtubeId": "Mrxb5BPnHCA"
+    }
+  ],
+  "05-Application-Lifecycle-Management/11.Practice-Test-Secrets": [
+    {
+      "title": "Kubernetes Secrets explained – topic video",
+      "youtubeId": "Mrxb5BPnHCA"
+    }
+  ],
+  "05-Application-Lifecycle-Management/12.Multi-Containers-PODs": [
+    {
+      "title": "Multi-container Pods – topic video",
+      "youtubeId": "fzIUZgHWx38"
+    }
+  ],
+  "05-Application-Lifecycle-Management/13-Practice-Test-Multi-Container-Pods": [
+    {
+      "title": "Multi-container Pods – topic video",
+      "youtubeId": "fzIUZgHWx38"
+    }
+  ],
+  "05-Application-Lifecycle-Management/14-Multi-Container-Pods-Design-Patterns": [
+    {
+      "title": "Sidecar, adapter and ambassador patterns – topic video",
+      "youtubeId": "9NTr6EFmxkI"
+    }
+  ],
+  "05-Application-Lifecycle-Management/15.Init-Containers": [
+    {
+      "title": "Init containers explained – topic video",
+      "youtubeId": "nQ06s5vWPEY"
+    }
+  ],
+  "05-Application-Lifecycle-Management/16-Practice-Test-Init-Containers": [
+    {
+      "title": "Init containers explained – topic video",
+      "youtubeId": "nQ06s5vWPEY"
+    }
+  ],
+  "05-Application-Lifecycle-Management/17.Self-Healing-Applications": [
+    {
+      "title": "Liveness, readiness and startup probes – topic video",
+      "youtubeId": "6_zxiCqCOPM"
+    }
+  ],
+  "06-Cluster-Maintenance/02-OS-Upgrades": [
+    {
+      "title": "Kubernetes cordon and drain – topic video",
+      "youtubeId": "tsCCdPzSBMo"
+    }
+  ],
+  "06-Cluster-Maintenance/03-Practice-Test-OS-Upgrades": [
+    {
+      "title": "Kubernetes cordon and drain – topic video",
+      "youtubeId": "tsCCdPzSBMo"
+    }
+  ],
+  "06-Cluster-Maintenance/04-Kubernetes-Software-Versions": [
+    {
+      "title": "Understanding Kubernetes releases and versions – topic video",
+      "youtubeId": "e3ULTHBAO8o"
+    }
+  ],
+  "06-Cluster-Maintenance/05-Cluster-Upgrade-Introduction": [
+    {
+      "title": "Cluster upgrade with kubeadm, step by step – topic video",
+      "youtubeId": "jkHpotdkqQA"
+    }
+  ],
+  "06-Cluster-Maintenance/06-Practice-Test-Cluster-Upgrade-Process": [
+    {
+      "title": "Cluster upgrade with kubeadm, step by step – topic video",
+      "youtubeId": "jkHpotdkqQA"
+    }
+  ],
+  "06-Cluster-Maintenance/07-Backup-and-Restore-Methods": [
+    {
+      "title": "etcd backup and restore in 3 easy steps – topic video",
+      "youtubeId": "mwpwixcGYXY"
+    }
+  ],
+  "06-Cluster-Maintenance/08-Working-With-ETCDCTL": [
+    {
+      "title": "etcd snapshot and restore with etcdctl – topic video",
+      "youtubeId": "0gkKak8ERQM"
+    }
+  ],
+  "06-Cluster-Maintenance/09-Practice-Test-Backup-and-Restore-Methods": [
+    {
+      "title": "etcd snapshot and restore with etcdctl – topic video",
+      "youtubeId": "0gkKak8ERQM"
+    }
+  ],
+  "06-Cluster-Maintenance/10-Practice-Test-Backup-and-Restore-Methods-2": [
+    {
+      "title": "etcd snapshot and restore with etcdctl – topic video",
+      "youtubeId": "0gkKak8ERQM"
+    }
+  ],
+  "07-Security/02-Kubernetes-Security-Primitives": [
+    {
+      "title": "Kubernetes authentication and authorization explained – topic video",
+      "youtubeId": "P0bogYEyfeI"
+    }
+  ],
+  "07-Security/03-Authentication": [
+    {
+      "title": "Kubernetes authentication fundamentals – topic video",
+      "youtubeId": "2setap7IgNc"
+    }
+  ],
+  "07-Security/04-TLS-Certificates": [
+    {
+      "title": "SSL/TLS explained simply – topic video",
+      "youtubeId": "njT5ECuwCTo"
+    }
+  ],
+  "07-Security/05-TLS-Basics": [
+    {
+      "title": "SSL/TLS explained simply – topic video",
+      "youtubeId": "njT5ECuwCTo"
+    }
+  ],
+  "07-Security/06-TLS-in-Kubernetes": [
+    {
+      "title": "Kubernetes PKI, certificates and CA explained – topic video",
+      "youtubeId": "6ELMoOLg05M"
+    }
+  ],
+  "07-Security/07-TLS-in-Kubernetes-Certificate-Creation": [
+    {
+      "title": "Create a self-signed Kubernetes certificate – topic video",
+      "youtubeId": "IQ3G8Z1myMw"
+    }
+  ],
+  "07-Security/08-View-Certificate-Details": [
+    {
+      "title": "Checking and renewing Kubernetes certificates with kubeadm – topic video",
+      "youtubeId": "h6YtDQ-Qtsk"
+    }
+  ],
+  "07-Security/09-Certificate-Health-Check-Spreadsheet": [
+    {
+      "title": "Checking and renewing Kubernetes certificates with kubeadm – topic video",
+      "youtubeId": "h6YtDQ-Qtsk"
+    }
+  ],
+  "07-Security/10-Practice-Test-View-Certificate-Details": [
+    {
+      "title": "Checking and renewing Kubernetes certificates with kubeadm – topic video",
+      "youtubeId": "h6YtDQ-Qtsk"
+    }
+  ],
+  "07-Security/11-Certificate-API": [
+    {
+      "title": "Certificate Signing Requests in Kubernetes – topic video",
+      "youtubeId": "LvPA-z8Xg4s"
+    }
+  ],
+  "07-Security/12-Practice-Test-Certificates-API": [
+    {
+      "title": "Certificate Signing Requests in Kubernetes – topic video",
+      "youtubeId": "LvPA-z8Xg4s"
+    }
+  ],
+  "07-Security/13-kubeconfig": [
+    {
+      "title": "kubeconfig file explained – topic video",
+      "youtubeId": "JjuZbUPKspM"
+    }
+  ],
+  "07-Security/14-Practice-Test-KubeConfig": [
+    {
+      "title": "kubeconfig file explained – topic video",
+      "youtubeId": "JjuZbUPKspM"
+    }
+  ],
+  "07-Security/15-API-Groups": [
+    {
+      "title": "Kubernetes API groups explained – topic video",
+      "youtubeId": "BNi18t9tU3I"
+    }
+  ],
+  "07-Security/16-Authorization": [
+    {
+      "title": "How authorization works in Kubernetes – topic video",
+      "youtubeId": "PkypAHvTyDs"
+    }
+  ],
+  "07-Security/17-RBAC": [
+    {
+      "title": "Kubernetes RBAC explained – topic video",
+      "youtubeId": "uGcDt7iNFkE"
+    }
+  ],
+  "07-Security/18-Practice-Test-RBAC": [
+    {
+      "title": "Kubernetes RBAC explained – topic video",
+      "youtubeId": "uGcDt7iNFkE"
+    }
+  ],
+  "07-Security/19-Cluster-Roles": [
+    {
+      "title": "ClusterRole and ClusterRoleBinding – topic video",
+      "youtubeId": "DswQe7shSa4"
+    }
+  ],
+  "07-Security/20-Practice-Test-Cluster-Roles": [
+    {
+      "title": "ClusterRole and ClusterRoleBinding – topic video",
+      "youtubeId": "DswQe7shSa4"
+    }
+  ],
+  "07-Security/21-Service-Account": [
+    {
+      "title": "ServiceAccounts and tokens explained – topic video",
+      "youtubeId": "ePOFpxZIRqY"
+    }
+  ],
+  "07-Security/22-Practice-Test-Service-Accounts": [
+    {
+      "title": "ServiceAccounts and tokens explained – topic video",
+      "youtubeId": "ePOFpxZIRqY"
+    }
+  ],
+  "07-Security/23-Image-Security": [
+    {
+      "title": "imagePullSecrets and private images – topic video",
+      "youtubeId": "7l92Dp88YSk"
+    }
+  ],
+  "07-Security/24-Practice-Test-Image-Security": [
+    {
+      "title": "imagePullSecrets and private images – topic video",
+      "youtubeId": "7l92Dp88YSk"
+    }
+  ],
+  "07-Security/25-Security-Context": [
+    {
+      "title": "Kubernetes security contexts – topic video",
+      "youtubeId": "JYVCdpYHUhg"
+    }
+  ],
+  "07-Security/26-Practice-Test-Security-Context": [
+    {
+      "title": "Kubernetes security contexts – topic video",
+      "youtubeId": "JYVCdpYHUhg"
+    }
+  ],
+  "07-Security/27-Network-Policies": [
+    {
+      "title": "Network policies explained – topic video",
+      "youtubeId": "18FEA5xXBGY"
+    }
+  ],
+  "07-Security/28-Practice-Test-Network-Policies": [
+    {
+      "title": "Network policies explained – topic video",
+      "youtubeId": "18FEA5xXBGY"
+    }
+  ],
+  "07-Security/29-kubectx-and-kubens-commands": [
+    {
+      "title": "kubectx and kubens – topic video",
+      "youtubeId": "nGznJeOH4ws"
+    }
+  ],
+  "08-Storage/02-Introduction-to-Docker-Storage": [
+    {
+      "title": "Docker storage – topic video",
+      "youtubeId": "lD1fD__i_QU"
+    }
+  ],
+  "08-Storage/03-Storage-in-Docker": [
+    {
+      "title": "Docker volumes and bind mounts – topic video",
+      "youtubeId": "eNNwJ-xulBc"
+    }
+  ],
+  "08-Storage/04-Volume-Driver-Plugins-in-Docker": [
+    {
+      "title": "Docker volume drivers and plugins – topic video",
+      "youtubeId": "bvvTEPBqkYM"
+    }
+  ],
+  "08-Storage/05-Container.Storage-Interface": [
+    {
+      "title": "CSI drivers explained – topic video",
+      "youtubeId": "gGjCRpRdt8M"
+    }
+  ],
+  "08-Storage/06-Volumes": [
+    {
+      "title": "Kubernetes volumes explained – topic video",
+      "youtubeId": "duOtb3nMdwg"
+    }
+  ],
+  "08-Storage/07-Persistent-Volumes": [
+    {
+      "title": "Persistent Volumes, PVCs and Storage Classes – topic video",
+      "youtubeId": "LABWC_Qv9Lw"
+    }
+  ],
+  "08-Storage/08-Persistent-Volume-Claims": [
+    {
+      "title": "PersistentVolume and PersistentVolumeClaim – topic video",
+      "youtubeId": "OulmwTYTauI"
+    }
+  ],
+  "08-Storage/09-Using-PVC-in-PODs": [
+    {
+      "title": "Persistent Volumes and PVCs in Pods – topic video",
+      "youtubeId": "QTnRzaHiUYA"
+    }
+  ],
+  "08-Storage/10-Practice-Test-Persistent-Volume-Claims": [
+    {
+      "title": "Persistent Volumes and PVCs in Pods – topic video",
+      "youtubeId": "QTnRzaHiUYA"
+    }
+  ],
+  "08-Storage/12-Storage-Class": [
+    {
+      "title": "StorageClasses and dynamic provisioning – topic video",
+      "youtubeId": "14OeWzPd2HY"
+    }
+  ],
+  "08-Storage/13-Practice-Test-Storage-Class": [
+    {
+      "title": "StorageClasses and dynamic provisioning – topic video",
+      "youtubeId": "14OeWzPd2HY"
+    }
+  ],
+  "09-Networking/01-Networking-Introduction": [
+    {
+      "title": "Kubernetes networking, everything you need to know – topic video",
+      "youtubeId": "133mAcb66ss"
+    }
+  ],
+  "09-Networking/02-Pre-requisite-Switching-Routing-Gateways": [
+    {
+      "title": "Linux routing basics – topic video",
+      "youtubeId": "Gy2g1ciJRqA"
+    }
+  ],
+  "09-Networking/03-Pre-requisite-DNS": [
+    {
+      "title": "How DNS works and nslookup – topic video",
+      "youtubeId": "3GIkfPL23LI"
+    }
+  ],
+  "09-Networking/04-Pre-requisite-CoreDNS": [
+    {
+      "title": "Understanding CoreDNS in Kubernetes – topic video",
+      "youtubeId": "VcWpZoRAQXE"
+    }
+  ],
+  "09-Networking/05-Pre-requisite-Network-Namespace": [
+    {
+      "title": "Container networking from scratch: network namespaces – topic video",
+      "youtubeId": "xzmGyLs6mGY"
+    }
+  ],
+  "09-Networking/06-Pre-requisite-Docker-Networking": [
+    {
+      "title": "Docker networking: bridge, host and none – topic video",
+      "youtubeId": "2Jum8Y1dew0"
+    }
+  ],
+  "09-Networking/07-Pre-requisite-CNI": [
+    {
+      "title": "Container Network Interface simplified – topic video",
+      "youtubeId": "kA0C44nTwjU"
+    }
+  ],
+  "09-Networking/08-Cluster-Networking": [
+    {
+      "title": "Kubernetes networking, everything you need to know – topic video",
+      "youtubeId": "133mAcb66ss"
+    }
+  ],
+  "09-Networking/09-Practice-Test-Explore-Env": [
+    {
+      "title": "Kubernetes networking, everything you need to know – topic video",
+      "youtubeId": "133mAcb66ss"
+    }
+  ],
+  "09-Networking/10-Pod-Networking": [
+    {
+      "title": "Pod to pod communication and networking – topic video",
+      "youtubeId": "_0An_dxua-k"
+    }
+  ],
+  "09-Networking/11-CNI-in-Kubernetes": [
+    {
+      "title": "Kubernetes CNI networking explained – topic video",
+      "youtubeId": "Yr2t8c2b2bk"
+    }
+  ],
+  "09-Networking/12-CNI-weave": [
+    {
+      "title": "Weave Net in Kubernetes – topic video",
+      "youtubeId": "bO3gQL9JgRE"
+    }
+  ],
+  "09-Networking/13-Practice-Test-CNI-weave": [
+    {
+      "title": "Weave Net in Kubernetes – topic video",
+      "youtubeId": "bO3gQL9JgRE"
+    }
+  ],
+  "09-Networking/14-Practice-Test-Deploy-Network-Solution": [
+    {
+      "title": "Weave Net in Kubernetes – topic video",
+      "youtubeId": "bO3gQL9JgRE"
+    }
+  ],
+  "09-Networking/15-ipam-weave": [
+    {
+      "title": "Pod to pod networking in Kubernetes – topic video",
+      "youtubeId": "QI7vpMRRZ5w"
+    }
+  ],
+  "09-Networking/16-Practice-Test-Networking-weave": [
+    {
+      "title": "Pod to pod networking in Kubernetes – topic video",
+      "youtubeId": "QI7vpMRRZ5w"
+    }
+  ],
+  "09-Networking/17-Service-Networking": [
+    {
+      "title": "How Kubernetes Services really work – topic video",
+      "youtubeId": "-CQLSXpvM_Q"
+    }
+  ],
+  "09-Networking/18-Practice-Test-Service-Networking": [
+    {
+      "title": "How Kubernetes Services really work – topic video",
+      "youtubeId": "-CQLSXpvM_Q"
+    }
+  ],
+  "09-Networking/19-DNS-in-kubernetes": [
+    {
+      "title": "DNS service discovery in Kubernetes – topic video",
+      "youtubeId": "EmGz9UsY9WM"
+    }
+  ],
+  "09-Networking/20-CoreDNS-in-Kubernetes": [
+    {
+      "title": "DNS and service discovery with CoreDNS – topic video",
+      "youtubeId": "eKLfqAwMMGM"
+    }
+  ],
+  "09-Networking/21-Practice-Test-CoreDNS-in-Kubernetes": [
+    {
+      "title": "DNS and service discovery with CoreDNS – topic video",
+      "youtubeId": "eKLfqAwMMGM"
+    }
+  ],
+  "09-Networking/22-Ingress": [
+    {
+      "title": "Kubernetes Ingress explained – topic video",
+      "youtubeId": "nLzrJIRpCkw"
+    }
+  ],
+  "09-Networking/23-Ingress-Annotations-and-rewrite-target": [
+    {
+      "title": "Kubernetes Ingress: NGINX explained – topic video",
+      "youtubeId": "u948CURLDJA"
+    }
+  ],
+  "09-Networking/24-Practice-Test-CKA-Ingress-Net-1": [
+    {
+      "title": "Kubernetes Ingress explained – topic video",
+      "youtubeId": "nLzrJIRpCkw"
+    }
+  ],
+  "09-Networking/25-Practice-Test-CKA-Ingress-Net-2": [
+    {
+      "title": "Kubernetes Ingress: NGINX explained – topic video",
+      "youtubeId": "u948CURLDJA"
+    }
+  ],
+  "10-Design-and-Install-Kubernetes-Cluster/01-Designing-a-Kubernetes-Cluster": [
+    {
+      "title": "Managed Kubernetes vs on-prem – topic video",
+      "youtubeId": "hjVSYWg4M78"
+    }
+  ],
+  "10-Design-and-Install-Kubernetes-Cluster/02-Choosing-Kubernetes-Infrastructure": [
+    {
+      "title": "Should you self-host Kubernetes? – topic video",
+      "youtubeId": "Jk0xrN4crqg"
+    }
+  ],
+  "10-Design-and-Install-Kubernetes-Cluster/03-Configure-High-Availability": [
+    {
+      "title": "Install a highly available Kubernetes cluster – topic video",
+      "youtubeId": "Kcln3-Vg-Ho"
+    }
+  ],
+  "10-Design-and-Install-Kubernetes-Cluster/04-ETCD-in-HA": [
+    {
+      "title": "Set up a secure highly available etcd cluster – topic video",
+      "youtubeId": "k78PyvIRVGI"
+    }
+  ],
+  "11-Install-Kubernetes-the-kubeadm-way/01-Introduction-to-Deployment-with-kubeadm": [
+    {
+      "title": "Set up a Kubernetes cluster using kubeadm – topic video",
+      "youtubeId": "-FqE9y8hejk"
+    }
+  ],
+  "11-Install-Kubernetes-the-kubeadm-way/03-Provision-VMs-with-Vagrant": [
+    {
+      "title": "Kubernetes multi-node cluster with Vagrant and VirtualBox – topic video",
+      "youtubeId": "sJwFoUtbATo"
+    }
+  ],
+  "11-Install-Kubernetes-the-kubeadm-way/04-Demo-Deployment-with-Kubeadm": [
+    {
+      "title": "Create a Kubernetes cluster using kubeadm – topic video",
+      "youtubeId": "cAZ5nkLfL6M"
+    }
+  ],
+  "12-Troubleshooting/02-Application-Failure": [
+    {
+      "title": "Troubleshooting CrashLoopBackOff, Pending and ImagePullBackOff – topic video",
+      "youtubeId": "ULitVDnqy8Y"
+    }
+  ],
+  "12-Troubleshooting/03-Solution-Application-Failure": [
+    {
+      "title": "Troubleshooting CrashLoopBackOff, Pending and ImagePullBackOff – topic video",
+      "youtubeId": "ULitVDnqy8Y"
+    }
+  ],
+  "12-Troubleshooting/04-Control-Plane-Failure": [
+    {
+      "title": "Troubleshooting control plane failure – topic video",
+      "youtubeId": "z6XjbuRl6LE"
+    }
+  ],
+  "12-Troubleshooting/05-Practice-Test-Control-Plane-Failure": [
+    {
+      "title": "Troubleshooting control plane failure – topic video",
+      "youtubeId": "z6XjbuRl6LE"
+    }
+  ],
+  "12-Troubleshooting/06-Solution-Control-Plane-Failure": [
+    {
+      "title": "Troubleshooting control plane failure – topic video",
+      "youtubeId": "z6XjbuRl6LE"
+    }
+  ],
+  "12-Troubleshooting/07-Worker-Node-Failure": [
+    {
+      "title": "Troubleshooting worker node failures – topic video",
+      "youtubeId": "U6PRwv7dJ-U"
+    }
+  ],
+  "12-Troubleshooting/08-Practice-Test-Worker-Node-Failure": [
+    {
+      "title": "Troubleshooting worker node failures – topic video",
+      "youtubeId": "U6PRwv7dJ-U"
+    }
+  ],
+  "12-Troubleshooting/09-Solution-Worker-Node-Failure": [
+    {
+      "title": "Troubleshooting worker node failures – topic video",
+      "youtubeId": "U6PRwv7dJ-U"
+    }
+  ],
+  "12-Troubleshooting/10-Practice-Test-Troubleshoot-Network": [
+    {
+      "title": "Kubernetes Service debugging – topic video",
+      "youtubeId": "dgVl_Yljrok"
+    }
+  ],
+  "18-Beyond-the-Course/01-Helm-and-Kustomize": [
+    {
+      "title": "Helm vs Kustomize – topic video",
+      "youtubeId": "ZMFYSm0ldQ0"
+    }
+  ],
+  "18-Beyond-the-Course/02-Gateway-API": [
+    {
+      "title": "Gateway API vs Ingress – topic video",
+      "youtubeId": "s95-g7AL-qE"
+    }
+  ],
+  "18-Beyond-the-Course/03-Workload-Autoscaling": [
+    {
+      "title": "Kubernetes autoscaling: HPA vs VPA – topic video",
+      "youtubeId": "afUL5jGoLx0"
+    }
+  ],
+  "18-Beyond-the-Course/04-CRDs-and-Operators": [
+    {
+      "title": "CRDs, controllers and Operators – topic video",
+      "youtubeId": "xlBMpLNaPlg"
+    }
+  ],
+  "18-Beyond-the-Course/05-Extension-Interfaces-CNI-CSI-CRI": [
+    {
+      "title": "CRI, CNI and CSI options in Kubernetes – topic video",
+      "youtubeId": "aqWU77J-shI"
+    }
+  ],
+  "13-Other-Topics/01-Labs-JSON-PATH": [
+    {
+      "title": "JSONPath and advanced kubectl – topic video",
+      "youtubeId": "l9_UDSaiFj4"
+    }
+  ],
+  "13-Other-Topics/02-Pre-Requisites-JSON-PATH": [
+    {
+      "title": "JSONPath and advanced kubectl – topic video",
+      "youtubeId": "l9_UDSaiFj4"
+    }
+  ],
+  "13-Other-Topics/03-Advance-Kubectl-Commands": [
+    {
+      "title": "JSONPath and advanced kubectl – topic video",
+      "youtubeId": "l9_UDSaiFj4"
+    }
+  ],
+  "13-Other-Topics/04-Practice-Test-Advance-Kubectl-Commands": [
+    {
+      "title": "JSONPath and advanced kubectl – topic video",
+      "youtubeId": "l9_UDSaiFj4"
+    }
+  ],
+  "05-Application-Lifecycle-Management/07.Configure-Environment-Variables-in-Applications": [
+    {
+      "title": "Set and read environment variables in Pods – topic video",
+      "youtubeId": "SSXFLdAiMGA"
+    }
+  ],
+  "11-Install-Kubernetes-the-kubeadm-way/02-Resources": [
+    {
+      "title": "Set up a Kubernetes cluster using kubeadm – topic video",
+      "youtubeId": "-FqE9y8hejk"
+    }
+  ],
+  "11-Install-Kubernetes-the-kubeadm-way/05-Practice-Test-Deploy-Kubernetes-Cluster-using-Kubeadm": [
+    {
+      "title": "Create a Kubernetes cluster using kubeadm – topic video",
+      "youtubeId": "cAZ5nkLfL6M"
+    }
+  ]
+}

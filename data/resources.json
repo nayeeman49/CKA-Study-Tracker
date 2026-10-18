@@ -1,0 +1,220 @@
+{
+  "videos": [
+    {
+      "group": "Full CKA courses",
+      "items": [
+        {
+          "title": "KodeKloud: Certified Kubernetes Administrator (CKA) course",
+          "by": "KodeKloud (Mumshad Mannambeth)",
+          "url": "https://learn.kodekloud.com/learn/courses/cka-certification-course-certified-kubernetes-administrator",
+          "tag": "Paid · labs included",
+          "note": "The course this repo accompanies.",
+          "img": "/img/courses/kodekloud.jpg"
+        },
+        {
+          "title": "Certified Kubernetes Administrator (CKA) with Practice Tests",
+          "by": "Udemy (Mumshad Mannambeth)",
+          "url": "https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/",
+          "tag": "Paid · Udemy",
+          "note": "Same instructor as the KodeKloud course and largely the same material, sold on Udemy (often discounted).",
+          "img": "/img/courses/udemy.jpg"
+        },
+        {
+          "title": "Certified Kubernetes Administrator Full Course For Beginners | CKA 2026",
+          "by": "Tech Tutorials with Piyush (YouTube)",
+          "url": "https://www.youtube.com/playlist?list=PLl4APkPHzsUUOkOv3i62UidrLmSB8DcGC",
+          "tag": "Free · 59 videos",
+          "note": "Playlist on the 2026 curriculum with demos and exam-style scenarios. Notes: github.com/piyushsachdeva/CKA-2024",
+          "img": "/img/courses/piyush.jpg"
+        },
+        {
+          "title": "Certified Kubernetes Administrator Video Course, 3rd Edition",
+          "by": "Sander van Vugt (YouTube)",
+          "url": "https://www.youtube.com/playlist?list=PLC5eRS3MXpp_O2-fNKmuZmW1zT-Wuil3u",
+          "tag": "Free playlist",
+          "note": "Check the edition against the v1.35 curriculum; a newer 4th edition is sold on his site.",
+          "img": "/img/courses/sander.jpg"
+        }
+      ]
+    },
+    {
+      "group": "Short overviews",
+      "items": [
+        {
+          "title": "CKA Exam Tips: How To Crack The Exam",
+          "by": "KodeKloud (YouTube)",
+          "url": "https://www.youtube.com/watch?v=8LJibrSurKA&t=105s",
+          "tag": "Free · ~10 min",
+          "note": "Exam strategy and time-management tips. Recorded in 2023, so check details against the current exam.",
+          "img": "/img/courses/kk-tips.jpg"
+        },
+        {
+          "title": "Kubernetes Course – Certified Kubernetes Administrator Exam Preparation",
+          "by": "freeCodeCamp.org (YouTube)",
+          "url": "https://www.youtube.com/watch?v=Fr9GqFwl6NM",
+          "tag": "Free · ~2 h",
+          "note": "A condensed exam-preparation course; a good fast overview rather than a full syllabus walkthrough.",
+          "img": "/img/courses/fcc-cka.jpg"
+        },
+        {
+          "title": "Kubernetes | How I Passed the CKA First Attempt: A Step-by-Step Guide",
+          "by": "Wisdom Script (YouTube)",
+          "url": "https://www.youtube.com/watch?v=fF-9pNmtx_M",
+          "tag": "Free · ~12 min",
+          "note": "A candidate's account of how they prepared and passed.",
+          "img": "/img/courses/passed-cka.jpg"
+        }
+      ]
+    },
+    {
+      "group": "Foundations (KCNA, not CKA)",
+      "items": [
+        {
+          "title": "CNCF Kubernetes and Cloud Native Associate (KCNA) Certification Course",
+          "by": "freeCodeCamp.org (YouTube)",
+          "url": "https://www.youtube.com/watch?v=AplluksKvzI",
+          "tag": "Free · ~14 h",
+          "note": "This is the KCNA (entry-level) course. Good for cloud-native and Kubernetes fundamentals, but it doesn't teach the hands-on CKA skills.",
+          "img": "/img/courses/kcna.jpg"
+        }
+      ]
+    }
+  ],
+  "practice": [
+    {
+      "title": "killer.sh CKA simulator",
+      "url": "https://killer.sh/cka",
+      "note": "Two sessions come with the exam purchase. Harder than the real exam."
+    },
+    {
+      "title": "Killercoda CKA scenarios",
+      "url": "https://killercoda.com/course/cka",
+      "note": "Browser-based practice clusters."
+    },
+    {
+      "title": "Kubernetes documentation home",
+      "url": "https://kubernetes.io/docs/home/",
+      "note": "The only site you can open during the exam (kubernetes.io/docs and its subdomains). Practise searching it."
+    },
+    {
+      "title": "CNCF CKA curriculum",
+      "url": "https://github.com/cncf/curriculum",
+      "note": "The official list of competencies and weights."
+    },
+    {
+      "title": "CKA exam page (Linux Foundation)",
+      "url": "https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/",
+      "note": "Registration, price, retake policy."
+    }
+  ],
+  "docsByDomain": {
+    "arch": [
+      [
+        "Cluster Architecture",
+        "https://kubernetes.io/docs/concepts/architecture/"
+      ],
+      [
+        "RBAC",
+        "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      ],
+      [
+        "kubeadm",
+        "https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/"
+      ],
+      [
+        "Upgrade with kubeadm",
+        "https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/"
+      ],
+      [
+        "etcd backup/restore",
+        "https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/"
+      ]
+    ],
+    "workloads": [
+      [
+        "Deployments",
+        "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+      ],
+      [
+        "ConfigMaps",
+        "https://kubernetes.io/docs/concepts/configuration/configmap/"
+      ],
+      [
+        "Secrets",
+        "https://kubernetes.io/docs/concepts/configuration/secret/"
+      ],
+      [
+        "Scheduling",
+        "https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      [
+        "Autoscaling (HPA)",
+        "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/"
+      ]
+    ],
+    "network": [
+      [
+        "Services",
+        "https://kubernetes.io/docs/concepts/services-networking/service/"
+      ],
+      [
+        "Ingress",
+        "https://kubernetes.io/docs/concepts/services-networking/ingress/"
+      ],
+      [
+        "Gateway API",
+        "https://kubernetes.io/docs/concepts/services-networking/gateway/"
+      ],
+      [
+        "Network Policies",
+        "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      ],
+      [
+        "DNS",
+        "https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/"
+      ]
+    ],
+    "storage": [
+      [
+        "Volumes",
+        "https://kubernetes.io/docs/concepts/storage/volumes/"
+      ],
+      [
+        "Persistent Volumes",
+        "https://kubernetes.io/docs/concepts/storage/persistent-volumes/"
+      ],
+      [
+        "Storage Classes",
+        "https://kubernetes.io/docs/concepts/storage/storage-classes/"
+      ]
+    ],
+    "trouble": [
+      [
+        "Debug Applications",
+        "https://kubernetes.io/docs/tasks/debug/debug-application/"
+      ],
+      [
+        "Debug Clusters",
+        "https://kubernetes.io/docs/tasks/debug/debug-cluster/"
+      ],
+      [
+        "Logging",
+        "https://kubernetes.io/docs/concepts/cluster-administration/logging/"
+      ],
+      [
+        "kubectl Quick Reference",
+        "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+      ]
+    ],
+    "practice": [
+      [
+        "kubectl Quick Reference",
+        "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+      ],
+      [
+        "Docs home",
+        "https://kubernetes.io/docs/home/"
+      ]
+    ]
+  }
+}

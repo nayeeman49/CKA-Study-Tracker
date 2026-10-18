@@ -1,0 +1,1329 @@
+{
+  "examVersion": "CKA v1.35",
+  "domains": [
+    {
+      "id": "arch",
+      "name": "Cluster Architecture, Installation & Configuration",
+      "weight": 25,
+      "color": "#6366f1"
+    },
+    {
+      "id": "workloads",
+      "name": "Workloads & Scheduling",
+      "weight": 15,
+      "color": "#0ea5e9"
+    },
+    {
+      "id": "network",
+      "name": "Services & Networking",
+      "weight": 20,
+      "color": "#10b981"
+    },
+    {
+      "id": "storage",
+      "name": "Storage",
+      "weight": 10,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "trouble",
+      "name": "Troubleshooting",
+      "weight": 30,
+      "color": "#ef4444"
+    },
+    {
+      "id": "practice",
+      "name": "Exam Practice (mixed domains)",
+      "weight": 0,
+      "color": "#8b5cf6"
+    }
+  ],
+  "sections": [
+    {
+      "id": "02-Core-Concepts",
+      "title": "Core Concepts",
+      "lessons": [
+        {
+          "id": "02-Core-Concepts/02-Cluster-Architecture",
+          "title": "Cluster Architecture",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/03-Docker-vs-ContainerD",
+          "title": "Docker vs ContainerD",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/04-ETCD-For-Beginners",
+          "title": "ETCD For Beginners",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/05-ETCD-in-Kubernetes",
+          "title": "ETCD in Kubernetes",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/06-Kube-API-Server",
+          "title": "Kube API Server",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/07-Kube-Controller-Manager",
+          "title": "Kube Controller Manager",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/08-Kube-Scheduler",
+          "title": "Kube Scheduler",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/09-Kubelet",
+          "title": "Kubelet",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/10-Kube-Proxy",
+          "title": "Kube Proxy",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/11-Pods",
+          "title": "Pods",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/13-Practice-Test-PODs",
+          "title": "Lab: PODs",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "02-Core-Concepts/14-ReplicaSets",
+          "title": "ReplicaSets",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/15-Practice-Tests-ReplicaSet",
+          "title": "Practice Tests ReplicaSet",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "02-Core-Concepts/16-Deployments",
+          "title": "Deployments",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/17-Practice-Tests-Deployments",
+          "title": "Practice Tests Deployments",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "02-Core-Concepts/18-Namespaces",
+          "title": "Namespaces",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/19-Practice-Test-Namespaces",
+          "title": "Lab: Namespaces",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "02-Core-Concepts/20-Services",
+          "title": "Services",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/21-Services-ClusterIP",
+          "title": "Services ClusterIP",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/22-Practice-Test-Services",
+          "title": "Lab: Services",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "02-Core-Concepts/23-Imperative-Commands-with-kubectl",
+          "title": "Imperative Commands with kubectl",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "02-Core-Concepts/24-Practice-Test-Imperative-Commands",
+          "title": "Lab: Imperative Commands",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "03-Scheduling",
+      "title": "Scheduling",
+      "lessons": [
+        {
+          "id": "03-Scheduling/02-Manual-Scheduling",
+          "title": "Manual Scheduling",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/03-Practice-Test-Manual-Scheduling",
+          "title": "Lab: Manual Scheduling",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/04-Labels-and-Selectors",
+          "title": "Labels and Selectors",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/05-Practice-Test-Labels-and-Selectors",
+          "title": "Lab: Labels and Selectors",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/06-Taints-and-Tolerations",
+          "title": "Taints and Tolerations",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/07-Practice-Test-Taints-and-Tolerations",
+          "title": "Lab: Taints and Tolerations",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/08-Node-Selectors",
+          "title": "Node Selectors",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/09-Node-Affinity",
+          "title": "Node Affinity",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/10-Practice-Test-Node-Affinity",
+          "title": "Lab: Node Affinity",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/11.Taints-and-Tolerations-vs-Node-Affinity",
+          "title": "Taints and Tolerations vs Node Affinity",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/12-Resource-Limits",
+          "title": "Resource Limits",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/13-Practice-Test-Resource-Limits",
+          "title": "Lab: Resource Limits",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/14-DaemonSets",
+          "title": "DaemonSets",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/15-Practice-Test-DaemonSets",
+          "title": "Lab: DaemonSets",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/16-Static-Pods",
+          "title": "Static Pods",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/17-Practice-Test-StaticPods",
+          "title": "Lab: StaticPods",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/18-Multiple-Schedulers",
+          "title": "Multiple Schedulers",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "03-Scheduling/19-Practice-Test-Multiple-Schedulers",
+          "title": "Lab: Multiple Schedulers",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "03-Scheduling/20-Configuring-Kubernetes-Schedulers",
+          "title": "Configuring Kubernetes Schedulers",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "04-Logging-and-Monitoring",
+      "title": "Logging and Monitoring",
+      "lessons": [
+        {
+          "id": "04-Logging-and-Monitoring/02-Monitor-Cluster-Components",
+          "title": "Monitor Cluster Components",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "04-Logging-and-Monitoring/03-Practice-Test-Monitor-Cluster-Components",
+          "title": "Lab: Monitor Cluster Components",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "04-Logging-and-Monitoring/04-Managing-Application-Logs",
+          "title": "Managing Application Logs",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "04-Logging-and-Monitoring/06-Practice-Test-Managing-Application-Logs",
+          "title": "Lab: Managing Application Logs",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "05-Application-Lifecycle-Management",
+      "title": "Application Lifecycle Management",
+      "lessons": [
+        {
+          "id": "05-Application-Lifecycle-Management/02-RollingUpdates-and-Rollback",
+          "title": "RollingUpdates and Rollback",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/03-Practice-Test-RollingUpdates-Rollback",
+          "title": "Lab: RollingUpdates Rollback",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/04-Commands-and-Arguments-in-Docker",
+          "title": "Commands and Arguments in Docker",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/05-Commands-and-Arguments-in-Kubernetes",
+          "title": "Commands and Arguments in Kubernetes",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/06-Practice-Test-Commands-and-Arguments",
+          "title": "Lab: Commands and Arguments",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/07.Configure-Environment-Variables-in-Applications",
+          "title": "Configure Environment Variables in Applications",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/08-Configure-ConfigMaps-in-Applications",
+          "title": "Configure ConfigMaps in Applications",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/09-Practice-Test-Env-Variables",
+          "title": "Lab: Env Variables",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/10.Secrets",
+          "title": "Secrets",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/11.Practice-Test-Secrets",
+          "title": "Lab: Secrets",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/12.Multi-Containers-PODs",
+          "title": "Multi Containers PODs",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/13-Practice-Test-Multi-Container-Pods",
+          "title": "Lab: Multi Container Pods",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/14-Multi-Container-Pods-Design-Patterns",
+          "title": "Multi Container Pods Design Patterns",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/15.Init-Containers",
+          "title": "Init Containers",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/16-Practice-Test-Init-Containers",
+          "title": "Lab: Init Containers",
+          "domain": "workloads",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "05-Application-Lifecycle-Management/17.Self-Healing-Applications",
+          "title": "Self Healing Applications",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "06-Cluster-Maintenance",
+      "title": "Cluster Maintenance",
+      "lessons": [
+        {
+          "id": "06-Cluster-Maintenance/02-OS-Upgrades",
+          "title": "OS Upgrades",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "06-Cluster-Maintenance/03-Practice-Test-OS-Upgrades",
+          "title": "Lab: OS Upgrades",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "06-Cluster-Maintenance/04-Kubernetes-Software-Versions",
+          "title": "Kubernetes Software Versions",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "06-Cluster-Maintenance/05-Cluster-Upgrade-Introduction",
+          "title": "Cluster Upgrade Introduction",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "06-Cluster-Maintenance/06-Practice-Test-Cluster-Upgrade-Process",
+          "title": "Lab: Cluster Upgrade Process",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "06-Cluster-Maintenance/07-Backup-and-Restore-Methods",
+          "title": "Backup and Restore Methods",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "06-Cluster-Maintenance/08-Working-With-ETCDCTL",
+          "title": "Working With ETCDCTL",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "06-Cluster-Maintenance/09-Practice-Test-Backup-and-Restore-Methods",
+          "title": "Lab: Backup and Restore Methods",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "06-Cluster-Maintenance/10-Practice-Test-Backup-and-Restore-Methods-2",
+          "title": "Lab: Backup and Restore Methods 2",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "07-Security",
+      "title": "Security",
+      "lessons": [
+        {
+          "id": "07-Security/02-Kubernetes-Security-Primitives",
+          "title": "Kubernetes Security Primitives",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/03-Authentication",
+          "title": "Authentication",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/04-TLS-Certificates",
+          "title": "TLS Certificates",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/05-TLS-Basics",
+          "title": "TLS Basics",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/06-TLS-in-Kubernetes",
+          "title": "TLS in Kubernetes",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/07-TLS-in-Kubernetes-Certificate-Creation",
+          "title": "TLS in Kubernetes Certificate Creation",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/08-View-Certificate-Details",
+          "title": "View Certificate Details",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/09-Certificate-Health-Check-Spreadsheet",
+          "title": "Certificate Health Check Spreadsheet",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/10-Practice-Test-View-Certificate-Details",
+          "title": "Lab: View Certificate Details",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/11-Certificate-API",
+          "title": "Certificate API",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/12-Practice-Test-Certificates-API",
+          "title": "Lab: Certificates API",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/13-kubeconfig",
+          "title": "KubeConfig",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/14-Practice-Test-KubeConfig",
+          "title": "Lab: KubeConfig",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/15-API-Groups",
+          "title": "API Groups",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/16-Authorization",
+          "title": "Authorization",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/17-RBAC",
+          "title": "RBAC",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/18-Practice-Test-RBAC",
+          "title": "Lab: RBAC",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/19-Cluster-Roles",
+          "title": "Cluster Roles",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/20-Practice-Test-Cluster-Roles",
+          "title": "Lab: Cluster Roles",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/21-Service-Account",
+          "title": "Service Account",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/22-Practice-Test-Service-Accounts",
+          "title": "Lab: Service Accounts",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/23-Image-Security",
+          "title": "Image Security",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/24-Practice-Test-Image-Security",
+          "title": "Lab: Image Security",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/25-Security-Context",
+          "title": "Security Context",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/26-Practice-Test-Security-Context",
+          "title": "Lab: Security Context",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/27-Network-Policies",
+          "title": "Network Policies",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "07-Security/28-Practice-Test-Network-Policies",
+          "title": "Lab: Network Policies",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "07-Security/29-kubectx-and-kubens-commands",
+          "title": "kubectx and kubens commands",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "08-Storage",
+      "title": "Storage",
+      "lessons": [
+        {
+          "id": "08-Storage/02-Introduction-to-Docker-Storage",
+          "title": "Introduction to Docker Storage",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/03-Storage-in-Docker",
+          "title": "Storage in Docker",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/04-Volume-Driver-Plugins-in-Docker",
+          "title": "Volume Driver Plugins in Docker",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/05-Container.Storage-Interface",
+          "title": "Container.Storage Interface",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/06-Volumes",
+          "title": "Volumes",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/07-Persistent-Volumes",
+          "title": "Persistent Volumes",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/08-Persistent-Volume-Claims",
+          "title": "Persistent Volume Claims",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/09-Using-PVC-in-PODs",
+          "title": "Using PVC in PODs",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/10-Practice-Test-Persistent-Volume-Claims",
+          "title": "Lab: Persistent Volume Claims",
+          "domain": "storage",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "08-Storage/12-Storage-Class",
+          "title": "Storage Class",
+          "domain": "storage",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "08-Storage/13-Practice-Test-Storage-Class",
+          "title": "Lab: Storage Class",
+          "domain": "storage",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "09-Networking",
+      "title": "Networking",
+      "lessons": [
+        {
+          "id": "09-Networking/01-Networking-Introduction",
+          "title": "Networking Introduction",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/02-Pre-requisite-Switching-Routing-Gateways",
+          "title": "Pre requisite Switching Routing Gateways",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/03-Pre-requisite-DNS",
+          "title": "Pre requisite DNS",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/04-Pre-requisite-CoreDNS",
+          "title": "Pre requisite CoreDNS",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/05-Pre-requisite-Network-Namespace",
+          "title": "Pre requisite Network Namespace",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/06-Pre-requisite-Docker-Networking",
+          "title": "Pre requisite Docker Networking",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/07-Pre-requisite-CNI",
+          "title": "Pre requisite CNI",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/08-Cluster-Networking",
+          "title": "Cluster Networking",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/09-Practice-Test-Explore-Env",
+          "title": "Lab: Explore Env",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/10-Pod-Networking",
+          "title": "Pod Networking",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/11-CNI-in-Kubernetes",
+          "title": "CNI in Kubernetes",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/12-CNI-weave",
+          "title": "CNI weave",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/13-Practice-Test-CNI-weave",
+          "title": "Lab: CNI weave",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/14-Practice-Test-Deploy-Network-Solution",
+          "title": "Lab: Deploy Network Solution",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/15-ipam-weave",
+          "title": "ipam weave",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/16-Practice-Test-Networking-weave",
+          "title": "Lab: Networking weave",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/17-Service-Networking",
+          "title": "Service Networking",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/18-Practice-Test-Service-Networking",
+          "title": "Lab: Service Networking",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/19-DNS-in-kubernetes",
+          "title": "DNS in kubernetes",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/20-CoreDNS-in-Kubernetes",
+          "title": "CoreDNS in Kubernetes",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/21-Practice-Test-CoreDNS-in-Kubernetes",
+          "title": "Lab: CoreDNS in Kubernetes",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/22-Ingress",
+          "title": "Ingress",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/23-Ingress-Annotations-and-rewrite-target",
+          "title": "Ingress Annotations and rewrite target",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "09-Networking/24-Practice-Test-CKA-Ingress-Net-1",
+          "title": "Lab: CKA Ingress Net 1",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "09-Networking/25-Practice-Test-CKA-Ingress-Net-2",
+          "title": "Lab: CKA Ingress Net 2",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "10-Design-and-Install-Kubernetes-Cluster",
+      "title": "Design and Install Kubernetes Cluster",
+      "lessons": [
+        {
+          "id": "10-Design-and-Install-Kubernetes-Cluster/01-Designing-a-Kubernetes-Cluster",
+          "title": "Designing a Kubernetes Cluster",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "10-Design-and-Install-Kubernetes-Cluster/02-Choosing-Kubernetes-Infrastructure",
+          "title": "Choosing Kubernetes Infrastructure",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "10-Design-and-Install-Kubernetes-Cluster/03-Configure-High-Availability",
+          "title": "Configure High Availability",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "10-Design-and-Install-Kubernetes-Cluster/04-ETCD-in-HA",
+          "title": "ETCD in HA",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "11-Install-Kubernetes-the-kubeadm-way",
+      "title": "Install Kubernetes the kubeadm way",
+      "lessons": [
+        {
+          "id": "11-Install-Kubernetes-the-kubeadm-way/01-Introduction-to-Deployment-with-kubeadm",
+          "title": "Introduction to Deployment with kubeadm",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "11-Install-Kubernetes-the-kubeadm-way/02-Resources",
+          "title": "Resources",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "11-Install-Kubernetes-the-kubeadm-way/03-Provision-VMs-with-Vagrant",
+          "title": "Provision VMs with Vagrant",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "11-Install-Kubernetes-the-kubeadm-way/04-Demo-Deployment-with-Kubeadm",
+          "title": "Demo Deployment with Kubeadm",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "11-Install-Kubernetes-the-kubeadm-way/05-Practice-Test-Deploy-Kubernetes-Cluster-using-Kubeadm",
+          "title": "Lab: Deploy Kubernetes Cluster using Kubeadm",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "12-Troubleshooting",
+      "title": "Troubleshooting",
+      "lessons": [
+        {
+          "id": "12-Troubleshooting/02-Application-Failure",
+          "title": "Application Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/03-Solution-Application-Failure",
+          "title": "Solution Application Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/04-Control-Plane-Failure",
+          "title": "Control Plane Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/05-Practice-Test-Control-Plane-Failure",
+          "title": "Lab: Control Plane Failure",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "12-Troubleshooting/06-Solution-Control-Plane-Failure",
+          "title": "Solution Control Plane Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/07-Worker-Node-Failure",
+          "title": "Worker Node Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/08-Practice-Test-Worker-Node-Failure",
+          "title": "Lab: Worker Node Failure",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "12-Troubleshooting/09-Solution-Worker-Node-Failure",
+          "title": "Solution Worker Node Failure",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "12-Troubleshooting/10-Practice-Test-Troubleshoot-Network",
+          "title": "Lab: Troubleshoot Network",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "18-Beyond-the-Course",
+      "title": "Additional topics (revised CKA)",
+      "lessons": [
+        {
+          "id": "18-Beyond-the-Course/01-Helm-and-Kustomize",
+          "title": "Helm and Kustomize",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 25,
+          "isNew": true
+        },
+        {
+          "id": "18-Beyond-the-Course/02-Gateway-API",
+          "title": "Gateway API",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 25,
+          "isNew": true
+        },
+        {
+          "id": "18-Beyond-the-Course/03-Workload-Autoscaling",
+          "title": "Workload Autoscaling",
+          "domain": "workloads",
+          "kind": "lesson",
+          "minutes": 15,
+          "isNew": true
+        },
+        {
+          "id": "18-Beyond-the-Course/04-CRDs-and-Operators",
+          "title": "CRDs and Operators",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15,
+          "isNew": true
+        },
+        {
+          "id": "18-Beyond-the-Course/05-Extension-Interfaces-CNI-CSI-CRI",
+          "title": "Extension Interfaces CNI CSI CRI",
+          "domain": "arch",
+          "kind": "lesson",
+          "minutes": 15,
+          "isNew": true
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "13-Other-Topics",
+      "title": "Other Topics",
+      "lessons": [
+        {
+          "id": "13-Other-Topics/01-Labs-JSON-PATH",
+          "title": "Labs JSON PATH",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "13-Other-Topics/02-Pre-Requisites-JSON-PATH",
+          "title": "Pre Requisites JSON PATH",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "13-Other-Topics/03-Advance-Kubectl-Commands",
+          "title": "Advance Kubectl Commands",
+          "domain": "trouble",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "13-Other-Topics/04-Practice-Test-Advance-Kubectl-Commands",
+          "title": "Lab: Advance Kubectl Commands",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "16-Ultimate-Mocks",
+      "title": "Ultimate Mocks",
+      "lessons": [
+        {
+          "id": "16-Ultimate-Mocks/02-Troubleshooting/docs/11-C1-orange-pvc-cka13-trb",
+          "title": "C1 orange pvc cka13 trb",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "16-Ultimate-Mocks/02-Troubleshooting/docs/19-C1-netpol-cyan-pod-cka28-trb",
+          "title": "C1 netpol cyan pod cka28 trb",
+          "domain": "trouble",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "16-Ultimate-Mocks/04-Storage/docs/10-CI-olive-pvc-cka10-str",
+          "title": "CI olive pvc cka10 str",
+          "domain": "storage",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "16-Ultimate-Mocks/05-Services-Networking/docs/03-C3-External-Webserver",
+          "title": "C3 External Webserver",
+          "domain": "network",
+          "kind": "lab",
+          "minutes": 30
+        },
+        {
+          "id": "16-Ultimate-Mocks/09-general/docs/01-cluster-state-questions",
+          "title": "cluster state questions",
+          "domain": "arch",
+          "kind": "lab",
+          "minutes": 30
+        }
+      ],
+      "notes": true
+    },
+    {
+      "id": "17-tips-and-tricks",
+      "title": "tips and tricks",
+      "lessons": [
+        {
+          "id": "17-tips-and-tricks/docs/01-server-for-testing-network-policies",
+          "title": "server for testing network policies",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        },
+        {
+          "id": "17-tips-and-tricks/docs/02-client--for-testing-network-things",
+          "title": "client for testing network things",
+          "domain": "network",
+          "kind": "lesson",
+          "minutes": 15
+        }
+      ],
+      "notes": true
+    }
+  ]
+}
