@@ -595,3 +595,21 @@ input[type=checkbox]{accent-color:var(--brand);width:1.05rem;height:1.05rem}
 .dash .timer-hero:hover,.dash .stats2 .stat:hover{transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-5px)!important}
 @media (hover:none){.dash .card{will-change:auto}}
 @media (prefers-reduced-motion:reduce){.dash .card:hover{transform:none!important}}
+
+/* ===== v3.2 performance pass: cheaper paints, snappier transitions ===== */
+/* background lives on one fixed, GPU-composited layer instead of repainting on scroll */
+:root:not([data-theme=light]) body{background:var(--bg)!important}
+:root:not([data-theme=light]) body::before{display:block;content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:1;background:var(--sky);transform:translateZ(0);animation:none}
+/* no live blur behind tiles (expensive on every scroll frame); use near-solid glass instead */
+:root:not([data-theme=light]) .card,:root:not([data-theme=light]) details.sec,:root:not([data-theme=light]) a.vid,:root:not([data-theme=light]) .nudge{
+  -webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--glass) 90%,transparent)}
+:root:not([data-theme=light]) .nav-in{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--glass) 94%,transparent)}
+:root[data-theme=light] .nav-in{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--surface) 96%,transparent)}
+/* transitions: only cheap properties, short */
+.card,details.sec,a.vid,.item,.btn,.chip,.nav a.tab{transition:transform .12s ease-out,border-color .12s,background-color .12s,color .12s}
+.dash .card{transition:transform .14s ease-out,border-color .12s;will-change:auto}
+.dash .card:hover{will-change:transform;box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 5px 0 var(--ext),0 6px 0 var(--ext),0 14px 26px -8px rgba(0,0,0,.45)}
+:root[data-theme=light] .dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 5px 0 var(--ext),0 6px 0 var(--ext),0 14px 24px -10px rgba(40,55,110,.28)}
+.dash .card::after{transition:opacity .12s}
+.stat .big,.item a,.item input[type=checkbox]{transition:none}
+.timer-hero,.timer-hero::after{animation:none!important}
