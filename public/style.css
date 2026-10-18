@@ -549,3 +549,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);b
 
 .stat .big .fl{font-size:.55em;vertical-align:.12em;margin-right:.1em}
 input[type=checkbox]{accent-color:var(--brand);width:1.05rem;height:1.05rem}
+
+/* v3.1: midnight-blue atmosphere instead of flat black (dark scheme only) */
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0a1424;--surface:#12203a;--ink:#eaf0fb;--muted:#93a6c4;--line:#243756;--brand:#8fb2ff;
+    --heat0:#16243d;--heat1:#243b6b;--heat2:#38559f;--heat3:#5f82e0;--heat4:#b0c8ff}
+  body{background:radial-gradient(1100px 620px at 50% -12%,#25476e 0%,transparent 62%),radial-gradient(800px 520px at 100% 35%,#16304f 0%,transparent 60%),radial-gradient(700px 500px at 0% 80%,#12294a 0%,transparent 60%),linear-gradient(#0b1730,#070e1c) fixed;min-height:100vh}
+  .card,details.sec,a.vid{background:color-mix(in srgb,#14233f 62%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-color:color-mix(in srgb,#9db8e8 14%,transparent)}
+  .nav-in{background:color-mix(in srgb,#0f1c33 66%,transparent);border-color:color-mix(in srgb,#9db8e8 18%,transparent)}
+  .stats2 .stat:nth-child(2){background:var(--tile)}
+  .lesson .md pre,.guide .md pre{background:rgba(5,10,20,.72);border-color:color-mix(in srgb,#9db8e8 14%,transparent)}
+  input[type=text],input[type=password],input[type=number],input[type=date],input[type=time],input[type=search],select,textarea{background:rgba(8,16,32,.55);border-color:color-mix(in srgb,#9db8e8 18%,transparent)}
+  .nudge{background:color-mix(in srgb,#14233f 62%,transparent)}
+}
