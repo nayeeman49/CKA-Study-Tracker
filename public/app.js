@@ -262,6 +262,7 @@ function renderDashboard() {
       <div class="card"><h2>Progress by exam domain</h2>${domainBars(st.domains)}</div>
       <div class="card"><h2>Last 20 weeks</h2>${heatmap(st.activity, u.dailyGoalMin)}<p class="small muted">Darker = closer to (or beyond) your ${fmtMin(u.dailyGoalMin)} daily goal.</p></div>
     </div>`);
+  $app.querySelector('main').classList.add('dash');
   document.getElementById('logForm').onsubmit = async e => {
     e.preventDefault();
     try { await api('POST', '/api/log', { day: today(), minutes: +logMin.value, note: logNote.value }); await loadProgress(); toast('Logged ✔'); render(); }
@@ -869,3 +870,23 @@ document.addEventListener('pointerdown', e => {
   x.className = 'rip'; x.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
   b.appendChild(x); setTimeout(() => x.remove(), 650);
 }, { passive: true });
+
+// Dashboard tiles: gentle 3D tilt toward the pointer (mouse only; transforms are GPU-composited, one rAF per frame)
+(() => {
+  if (!matchMedia('(hover:hover) and (pointer:fine)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  let el = null, raf = 0, ev = null;
+  const apply = () => {
+    raf = 0; if (!el || !ev) return;
+    const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+    el.style.setProperty('--ry', ((x - .5) * 9).toFixed(2) + 'deg');
+    el.style.setProperty('--rx', ((.5 - y) * 7).toFixed(2) + 'deg');
+    el.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); el.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  };
+  const reset = t => { if (!t) return; t.style.removeProperty('--rx'); t.style.removeProperty('--ry'); };
+  document.addEventListener('pointermove', e => {
+    const t = e.target.closest && e.target.closest('.dash .card');
+    if (t !== el) { reset(el); el = t; }
+    if (!t) return; ev = e; if (!raf) raf = requestAnimationFrame(apply);
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { reset(el); el = null; }, true);
+})();
