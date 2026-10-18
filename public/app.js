@@ -69,7 +69,7 @@ function shell(active, inner) {
   <header class="nav"><div class="nav-in">
     <a class="brand" href="#/" aria-label="CKA Study Tracker home">${logoSvg()}<span><b>CKA</b> Study Tracker</span></a>
     ${[['', 'Dashboard'], ['curriculum', 'Curriculum'], ['calendar', 'Calendar'], ['resources', 'Resources'], ['discussions', 'Discussions'], ['community', 'Community']]
-      .map(([h, t]) => `<a class="tab ${active === h ? 'on' : ''}" href="#/${h}">${t}</a>`).join('')}
+      .map(([h, t]) => `<a class="tab ${h === 'curriculum' ? 'hero' : ''} ${active === h ? 'on' : ''}" href="#/${h}">${h === 'curriculum' ? '<span class="hero-ic">✦</span>' : ''}${t}</a>`).join('')}
     <span class="sp"></span>
     <button class="timer-pill ${S.timer ? (S.timer.state === 'running' ? 'on' : 'paused') : ''}" data-timer="open" title="Study timer">⏱ <span data-clock-short>${S.timer ? fmtClock(tElapsed()) : 'Timer'}</span></button>
     <span class="chip" title="Current study streak">🔥 ${st ? st.streak : 0} day${st && st.streak === 1 ? '' : 's'}</span>
