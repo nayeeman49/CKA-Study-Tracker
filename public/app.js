@@ -60,6 +60,9 @@ async function boot() {
 }
 
 // ---------- layout ----------
+// Set to your Ko-fi / Buy Me a Coffee page, e.g. 'https://ko-fi.com/yourname'. Leave '' to hide the button.
+const SUPPORT_URL = '';
+
 function shell(active, inner) {
   const st = S.stats;
   return `
@@ -72,7 +75,8 @@ function shell(active, inner) {
     <span class="chip" title="Current study streak">🔥 ${st ? st.streak : 0} day${st && st.streak === 1 ? '' : 's'}</span>
     <a class="tab ${active === 'settings' ? 'on' : ''}" href="#/settings">${esc(S.user.displayName)}</a>
   </div></header>
-  <main>${inner}</main>`;
+  <main>${inner}</main>
+  <footer class="site-foot"><span>Free study tool. Not affiliated with or endorsed by the Linux Foundation or CNCF.</span>${SUPPORT_URL ? `<a class="coffee" href="${SUPPORT_URL}" target="_blank" rel="noopener noreferrer">☕ Support this project</a>` : ''}</footer>`;
 }
 
 // ---------- router ----------
