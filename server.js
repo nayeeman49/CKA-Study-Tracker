@@ -574,6 +574,7 @@ function stripKodeKloud(md) {
     .split('\n')
     .filter(line => !/^\s*[-*]?\s*(take me to|go to)\b.*\]\(https?:\/\/[\w.-]*kodekloud\.com[^)]*\)/i.test(line))
     .join('\n')
+    .replace(/^(\s*(?:#+\s*)?Solutions?\b[^\n]*?)(?:the\s+)?practice tests?/gim, '$1KodeKloud Lab')
     .replace(/\[([^\]]*)\]\(https?:\/\/[\w.-]*kodekloud\.com[^)]*\)/gi, '$1');
 }
 

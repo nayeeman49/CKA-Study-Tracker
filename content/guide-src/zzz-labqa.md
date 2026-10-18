@@ -49,6 +49,20 @@ A **request** is what the scheduler reserves for the Pod when picking a node. A 
 
 </details>
 
+<details>
+<summary><b>Q6.</b> What is the difference between a request and a limit?</summary>
+
+A request is the amount the scheduler reserves; a limit is the cap the container cannot exceed.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> What happens when a container exceeds its memory limit?</summary>
+
+It is OOMKilled (`Reason: OOMKilled` in `kubectl describe pod`). Exceeding the CPU limit only throttles it.
+
+</details>
+
 @@ 03-Scheduling/15-Practice-Test-DaemonSets
 
 <details>
@@ -633,6 +647,20 @@ kubectl get pods -A -o wide --field-selector spec.nodeName=node01
 
 </details>
 
+<details>
+<summary><b>Q6.</b> How long does Kubernetes wait before evicting Pods from a node that is down?</summary>
+
+The default `pod-eviction-timeout` was 5 minutes. A Pod is replaced only if a controller manages it.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Does <code>drain</code> move DaemonSet Pods?</summary>
+
+No. Use `--ignore-daemonsets`, since they are tied to each node.
+
+</details>
+
 @@ 06-Cluster-Maintenance/06-Practice-Test-Cluster-Upgrade-Process
 
 <details>
@@ -1160,6 +1188,42 @@ kubectl run nginx --image=nginx --dry-run=client -o yaml > pod.yaml
 
 </details>
 
+<details>
+<summary><b>Q5.</b> How do you list Pods in every namespace and watch them change?</summary>
+
+```bash
+kubectl get pods -A
+kubectl get pods -w
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you run a command inside a running Pod?</summary>
+
+```bash
+kubectl exec -it nginx -- /bin/sh
+kubectl exec nginx -- ls /etc
+```
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you delete a Pod immediately without waiting for graceful shutdown?</summary>
+
+```bash
+kubectl delete pod nginx --grace-period=0 --force
+```
+
+</details>
+
+<details>
+<summary><b>Q8.</b> What does the <code>Pending</code> status mean and how do you find out why?</summary>
+
+The Pod is accepted but not yet running on a node (not scheduled, or images still pulling). `kubectl describe pod <name>` shows scheduling and pull events.
+
+</details>
+
 @@ 02-Core-Concepts/15-Practice-Tests-ReplicaSet
 
 <details>
@@ -1194,6 +1258,32 @@ The ReplicaSet creates a replacement to keep the desired count.
 ```bash
 kubectl edit rs new-replica-set      # fix image
 kubectl delete pod -l <label>        # existing Pods keep the old image until deleted
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> What is the difference between a ReplicaSet and a ReplicationController?</summary>
+
+A ReplicaSet (`apps/v1`) supports set-based selectors and requires `spec.selector`. A ReplicationController is the older API with equality selectors only.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you see the Pods a ReplicaSet owns?</summary>
+
+```bash
+kubectl get pods --show-labels
+kubectl get pod <pod> -o jsonpath='{.metadata.ownerReferences[0].name}'
+```
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you delete a ReplicaSet but leave its Pods running?</summary>
+
+```bash
+kubectl delete rs <name> --cascade=orphan
 ```
 
 </details>
@@ -1238,6 +1328,32 @@ kubectl edit deployment <name>      # strategy.type: Recreate (remove rollingUpd
 
 </details>
 
+<details>
+<summary><b>Q5.</b> How is a Deployment different from a ReplicaSet?</summary>
+
+A Deployment manages ReplicaSets and adds rolling updates, rollback and revision history.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Roll back a bad update.</summary>
+
+```bash
+kubectl rollout history deployment/<name>
+kubectl rollout undo deployment/<name>
+```
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Generate a Deployment YAML to edit before creating.</summary>
+
+```bash
+kubectl create deployment web --image=nginx --replicas=3 --dry-run=client -o yaml > web.yaml
+```
+
+</details>
+
 @@ 02-Core-Concepts/19-Practice-Test-Namespaces
 
 <details>
@@ -1272,6 +1388,30 @@ kubectl get pods -A | grep blue
 <summary><b>Q4.</b> How do you reach a Service in another namespace by DNS?</summary>
 
 `<service>.<namespace>.svc.cluster.local`, for example `db-service.dev.svc.cluster.local`.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Create a namespace and set it as your default for kubectl.</summary>
+
+```bash
+kubectl create ns dev
+kubectl config set-context --current --namespace=dev
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Limit the resources a namespace can use.</summary>
+
+Create a `ResourceQuota` in the namespace, for example `kubectl create quota dev-q --hard=pods=10,cpu=4,memory=8Gi -n dev`.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Which namespaces exist by default?</summary>
+
+`default`, `kube-system`, `kube-public` and `kube-node-lease`.
 
 </details>
 
@@ -1314,6 +1454,29 @@ kubectl run redis --image=redis --port=6379 --expose
 
 </details>
 
+<details>
+<summary><b>Q5.</b> What are the Service types?</summary>
+
+ClusterIP (default, internal only), NodePort (opens a port 30000-32767 on every node), LoadBalancer (cloud load balancer) and ExternalName (DNS alias).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> What is the difference between <code>port</code>, <code>targetPort</code> and <code>nodePort</code>?</summary>
+
+`port` is the Service port, `targetPort` is the container port traffic is sent to, `nodePort` is the port opened on each node.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you test a Service from inside the cluster?</summary>
+
+```bash
+kubectl run tmp --image=busybox --rm -it --restart=Never -- wget -qO- http://webapp-service:8080
+```
+
+</details>
+
 @@ 02-Core-Concepts/24-Practice-Test-Imperative-Commands
 
 <details>
@@ -1351,6 +1514,33 @@ kubectl run custom-nginx --image=nginx --port=8080
 
 </details>
 
+<details>
+<summary><b>Q5.</b> Why prefer imperative commands in the exam?</summary>
+
+They are much faster than writing YAML. Use `--dry-run=client -o yaml` to produce a base file and edit only what the command cannot set.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Create a Pod with a command and arguments.</summary>
+
+```bash
+kubectl run busybox --image=busybox --command -- sleep 3600
+```
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Create a Namespace, ServiceAccount and ConfigMap imperatively.</summary>
+
+```bash
+kubectl create ns dev
+kubectl create sa build-sa
+kubectl create configmap app-config --from-literal=ENV=prod
+```
+
+</details>
+
 @@ 03-Scheduling/03-Practice-Test-Manual-Scheduling
 
 <details>
@@ -1374,6 +1564,29 @@ POST a `Binding` object to the API. In practice, delete and recreate with `nodeN
 <summary><b>Q3.</b> Why is the Pod Pending in the first place?</summary>
 
 The scheduler is not running. Check `kubectl get pods -n kube-system | grep scheduler`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Which field assigns a Pod to a node directly?</summary>
+
+`spec.nodeName`. The scheduler skips Pods that already have it.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Can you change <code>nodeName</code> on a running Pod?</summary>
+
+No. The field is immutable, so delete and recreate the Pod (`kubectl replace --force -f pod.yaml`).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you check which Pods are unscheduled?</summary>
+
+```bash
+kubectl get pods -A --field-selector status.phase=Pending -o wide
+```
 
 </details>
 
@@ -1402,6 +1615,35 @@ kubectl get all --selector env=prod,bu=finance,tier=frontend
 <summary><b>Q3.</b> Fix a ReplicaSet whose selector does not match its template.</summary>
 
 Make `spec.selector.matchLabels` match `spec.template.metadata.labels`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Add or change a label on a running Pod.</summary>
+
+```bash
+kubectl label pod nginx tier=frontend
+kubectl label pod nginx tier=backend --overwrite
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Remove a label.</summary>
+
+```bash
+kubectl label pod nginx tier-
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Show labels as columns.</summary>
+
+```bash
+kubectl get pods -L env,tier
+kubectl get pods --show-labels
+```
 
 </details>
 
@@ -1446,6 +1688,29 @@ No, it only allows it. Use node affinity or `nodeSelector` to attract it.
 
 </details>
 
+<details>
+<summary><b>Q5.</b> Name the three taint effects.</summary>
+
+`NoSchedule` (new Pods avoid the node), `PreferNoSchedule` (soft version) and `NoExecute` (also evicts running Pods without a toleration).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Why do Pods not run on the control plane by default?</summary>
+
+It carries the taint `node-role.kubernetes.io/control-plane:NoSchedule`.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you view a node's taints?</summary>
+
+```bash
+kubectl describe node node01 | grep -i taint
+```
+
+</details>
+
 @@ 03-Scheduling/10-Practice-Test-Node-Affinity
 
 <details>
@@ -1480,6 +1745,27 @@ Use `operator: Exists` with just the `key`.
 
 </details>
 
+<details>
+<summary><b>Q4.</b> What is the difference between <code>required</code> and <code>preferred</code> affinity?</summary>
+
+`requiredDuringSchedulingIgnoredDuringExecution` is a hard rule (Pod stays Pending if no match). `preferred...` is a soft rule with a `weight`.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> What does <code>IgnoredDuringExecution</code> mean?</summary>
+
+Label changes on a node after the Pod is running do not evict the Pod.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Name the match operators.</summary>
+
+`In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, `Lt`.
+
+</details>
+
 @@ 04-Logging-and-Monitoring/03-Practice-Test-Monitor-Cluster-Components
 
 <details>
@@ -1506,6 +1792,31 @@ kubectl top pod --sort-by=cpu
 <summary><b>Q3.</b> <code>kubectl top</code> says "Metrics API not available".</summary>
 
 Metrics-server is missing or not Ready. Check `kubectl get pods -n kube-system` and its logs.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> What does <code>kubectl top</code> need to work?</summary>
+
+The metrics-server, which collects CPU and memory from each kubelet.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Show the resource usage per container.</summary>
+
+```bash
+kubectl top pod --containers
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Find the busiest node.</summary>
+
+```bash
+kubectl top node --sort-by=cpu
+```
 
 </details>
 
@@ -1543,6 +1854,32 @@ Then edit `/etc/kubernetes/manifests/etcd.yaml` so the `etcd-data` hostPath is `
 
 </details>
 
+<details>
+<summary><b>Q4.</b> How do you verify a snapshot file?</summary>
+
+```bash
+etcdutl snapshot status /opt/snapshot-pre-boot.db -w table
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Besides etcd, what else can be backed up?</summary>
+
+Resource manifests: `kubectl get all -A -o yaml > all.yaml`, or tools such as Velero.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you check the etcd Pod is healthy after a restore?</summary>
+
+```bash
+kubectl get pods -n kube-system | grep etcd
+crictl ps | grep etcd
+```
+
+</details>
+
 @@ 06-Cluster-Maintenance/10-Practice-Test-Backup-and-Restore-Methods-2
 
 <details>
@@ -1563,6 +1900,29 @@ SSH to the etcd host and run `etcdctl snapshot save` with that host's certs, the
 <summary><b>Q3.</b> How do you restore external etcd?</summary>
 
 Stop the etcd service, restore to a new data dir, point `--data-dir` in the systemd unit at it, `chown etcd:etcd`, `systemctl daemon-reload`, then start etcd and restart the control plane components.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Which <code>etcdctl</code> flags are needed to talk to a TLS etcd?</summary>
+
+`--endpoints`, `--cacert`, `--cert` and `--key`.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> How do you list the members of an etcd cluster?</summary>
+
+```bash
+ETCDCTL_API=3 etcdctl member list --endpoints=... --cacert=... --cert=... --key=...
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Why restore into a new data directory?</summary>
+
+It avoids overwriting the current data and lets you switch back by editing the path.
 
 </details>
 
@@ -1589,6 +1949,29 @@ Set `serviceAccountName: dashboard-sa` in the Pod template.
 <summary><b>Q3.</b> Why does the default token no longer appear as a Secret?</summary>
 
 Since v1.24 tokens are short-lived and requested via the TokenRequest API. Long-lived tokens need a Secret of type `kubernetes.io/service-account-token`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> How do you grant a ServiceAccount permissions?</summary>
+
+```bash
+kubectl create rolebinding dash-rb --role=pod-reader --serviceaccount=default:dashboard-sa
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Which ServiceAccount does a Pod use if none is set?</summary>
+
+The `default` ServiceAccount of its namespace.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Stop a Pod mounting an API token.</summary>
+
+Set `automountServiceAccountToken: false` in the Pod or ServiceAccount spec.
 
 </details>
 
@@ -1637,6 +2020,30 @@ It follows `persistentVolumeReclaimPolicy`: Retain (kept, not reusable), Delete 
 
 </details>
 
+<details>
+<summary><b>Q5.</b> What is the relation between PV and PVC?</summary>
+
+A PV is cluster storage; a PVC is a namespaced request for it. They bind one-to-one.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Name the access modes.</summary>
+
+`ReadWriteOnce`, `ReadOnlyMany`, `ReadWriteMany` and `ReadWriteOncePod`.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Show which PV a PVC is bound to.</summary>
+
+```bash
+kubectl get pvc
+kubectl get pv
+```
+
+</details>
+
 @@ 08-Storage/13-Practice-Test-Storage-Class
 
 <details>
@@ -1667,6 +2074,29 @@ metadata:
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
 ```
+
+</details>
+
+<details>
+<summary><b>Q4.</b> What does a StorageClass do?</summary>
+
+It enables dynamic provisioning: a PVC referencing the class gets a PV created automatically.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Make a StorageClass the default.</summary>
+
+```bash
+kubectl patch sc <name> -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Use a StorageClass from a PVC.</summary>
+
+Set `storageClassName: <name>` in the PVC spec.
 
 </details>
 
@@ -1702,6 +2132,31 @@ API server 6443, etcd 2379/2380, kubelet 10250.
 
 </details>
 
+<details>
+<summary><b>Q4.</b> How do you find a Pod's IP and node?</summary>
+
+```bash
+kubectl get pods -o wide
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Which network ranges does a cluster use?</summary>
+
+Node network, Pod CIDR, and Service CIDR (`--service-cluster-ip-range`).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Show the routing table of a node.</summary>
+
+```bash
+ip route
+```
+
+</details>
+
 @@ 09-Networking/13-Practice-Test-CNI-weave
 
 <details>
@@ -1725,6 +2180,29 @@ Often no CNI is installed. `kubectl describe pod` shows "network plugin is not r
 <summary><b>Q3.</b> Which binary does the kubelet run to set up Pod networking?</summary>
 
 The one named in the CNI config, such as `weave-net` or `flannel`, found in `/opt/cni/bin`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> What does CNI stand for and what does it do?</summary>
+
+Container Network Interface: a standard for plugins that assign Pod IPs and set up connectivity.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Which CNI plugins support Network Policies?</summary>
+
+Calico, Cilium and Weave do; Flannel does not.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Show the CNI config in use.</summary>
+
+```bash
+cat /etc/cni/net.d/*.conflist
+```
 
 </details>
 
@@ -1757,6 +2235,27 @@ Set `IPALLOC_RANGE` in the weave container env of the DaemonSet.
 
 </details>
 
+<details>
+<summary><b>Q4.</b> Why do nodes show <code>NotReady</code> before a CNI is installed?</summary>
+
+The kubelet reports the network plugin as not ready until a CNI config exists.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Does every Pod need a unique IP?</summary>
+
+Yes. Kubernetes requires every Pod to reach every other Pod without NAT.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Where do you set the Pod CIDR for kubeadm?</summary>
+
+`kubeadm init --pod-network-cidr=<cidr>`, and it must match the CNI's range.
+
+</details>
+
 @@ 09-Networking/16-Practice-Test-Networking-weave
 
 <details>
@@ -1786,6 +2285,31 @@ It points to the bridge IP on the Pod's node.
 
 </details>
 
+<details>
+<summary><b>Q4.</b> Which command shows Weave's status?</summary>
+
+```bash
+kubectl exec -n kube-system weave-net-xxxxx -c weave -- /home/weave/weave --local status
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> How does traffic cross nodes with Weave?</summary>
+
+Weave agents form a mesh and encapsulate Pod traffic between nodes.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you find which node's agent a Pod uses?</summary>
+
+```bash
+kubectl get pods -n kube-system -o wide | grep weave
+```
+
+</details>
+
 @@ 09-Networking/18-Practice-Test-Service-Networking
 
 <details>
@@ -1812,6 +2336,31 @@ Usually `iptables`.
 
 ```bash
 iptables -t nat -L -n | grep db-service
+```
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Does a ClusterIP exist on any interface?</summary>
+
+No. It is virtual; kube-proxy programs rules that redirect it to Pod IPs.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Where is kube-proxy's configuration?</summary>
+
+```bash
+kubectl -n kube-system describe cm kube-proxy
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you see the Pod endpoints behind a Service?</summary>
+
+```bash
+kubectl get endpoints <svc>
 ```
 
 </details>
@@ -1849,6 +2398,29 @@ The kubelet writes the `kube-dns` IP into the Pod's `/etc/resolv.conf`.
 
 </details>
 
+<details>
+<summary><b>Q5.</b> How do you test DNS from a Pod?</summary>
+
+```bash
+kubectl exec -it <pod> -- nslookup kubernetes.default
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> What does the Pod's <code>/etc/resolv.conf</code> contain?</summary>
+
+The `kube-dns` Service IP as `nameserver` and a `search` list like `default.svc.cluster.local svc.cluster.local cluster.local`.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you reach a Pod by DNS?</summary>
+
+`<pod-ip-with-dashes>.<ns>.pod.cluster.local`, for example `10-244-1-5.default.pod.cluster.local`.
+
+</details>
+
 @@ 09-Networking/24-Practice-Test-CKA-Ingress-Net-1
 
 <details>
@@ -1877,6 +2449,29 @@ The backend Service name or port is wrong, or `rewrite-target` annotation is mis
 
 </details>
 
+<details>
+<summary><b>Q4.</b> What is the difference between an Ingress and an Ingress controller?</summary>
+
+The Ingress is the routing rule object. The controller (nginx, Traefik) is the software that applies it.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> What does <code>pathType: Prefix</code> do?</summary>
+
+It matches the path and anything below it, split on `/`.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you inspect an Ingress rule?</summary>
+
+```bash
+kubectl describe ingress -n app-space
+```
+
+</details>
+
 @@ 09-Networking/25-Practice-Test-CKA-Ingress-Net-2
 
 <details>
@@ -1900,6 +2495,29 @@ Without it the backend sees `/wear`, which it may not serve.
 <summary><b>Q3.</b> Create an Ingress for a different namespace.</summary>
 
 An Ingress can only reference Services in its own namespace, so create it in the same namespace as the Service.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Route by hostname.</summary>
+
+```bash
+kubectl create ingress shop --rule="shop.example.com/*=shop-svc:80"
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> What does the default backend do?</summary>
+
+It serves requests that match no rule (404 by default).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Why might an Ingress show no ADDRESS?</summary>
+
+The controller has not picked it up: check `ingressClassName` and the controller's Pods and Service.
 
 </details>
 
@@ -1939,6 +2557,30 @@ Install a CNI plugin (Flannel, Calico, Weave) with `kubectl apply -f`.
 
 </details>
 
+<details>
+<summary><b>Q5.</b> Which ports must be open on the control plane?</summary>
+
+6443 (API server), 2379-2380 (etcd), 10250 (kubelet), 10259 (scheduler), 10257 (controller manager).
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Why must swap be off?</summary>
+
+The kubelet does not run correctly with swap unless configured for it. Disable with `swapoff -a` and remove it from `/etc/fstab`.
+
+</details>
+
+<details>
+<summary><b>Q7.</b> How do you verify the cluster after install?</summary>
+
+```bash
+kubectl get nodes
+kubectl get pods -n kube-system
+```
+
+</details>
+
 @@ 12-Troubleshooting/05-Practice-Test-Control-Plane-Failure
 
 <details>
@@ -1962,6 +2604,27 @@ The controller manager is likely broken. `kubectl -n kube-system logs kube-contr
 <summary><b>Q3.</b> Where are static Pod manifests and the logs?</summary>
 
 `/etc/kubernetes/manifests/`. Logs: `kubectl logs` or `crictl logs`, `journalctl -u kubelet`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Which control plane components run as static Pods?</summary>
+
+kube-apiserver, kube-controller-manager, kube-scheduler and etcd (on kubeadm clusters).
+
+</details>
+
+<details>
+<summary><b>Q5.</b> <code>kubectl</code> itself fails. Where do you look?</summary>
+
+At the API server: `crictl ps -a | grep apiserver`, `crictl logs <id>`, and `/etc/kubernetes/manifests/kube-apiserver.yaml`.
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you restart a static Pod?</summary>
+
+Move its manifest out of `/etc/kubernetes/manifests/` and back, or touch the file.
 
 </details>
 
@@ -1996,6 +2659,34 @@ The `clientCAFile` in the kubelet config or the CA in kubelet.conf; fix to `/etc
 
 </details>
 
+<details>
+<summary><b>Q4.</b> What are the usual causes of <code>NotReady</code>?</summary>
+
+Kubelet stopped, container runtime down, network or certificate problems, or disk/memory pressure.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> How do you check disk and memory pressure?</summary>
+
+```bash
+kubectl describe node node01 | grep -A8 Conditions
+df -h
+free -m
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> How do you check the container runtime?</summary>
+
+```bash
+systemctl status containerd
+crictl ps
+```
+
+</details>
+
 @@ 12-Troubleshooting/10-Practice-Test-Troubleshoot-Network
 
 <details>
@@ -2020,6 +2711,34 @@ Check the ConfigMap `kube-proxy` and the config path in the DaemonSet command.
 <summary><b>Q3.</b> Services work by IP but not by name.</summary>
 
 Check CoreDNS Pods, the `kube-dns` Service and its endpoints.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> How do you check which CNI Pods are running?</summary>
+
+```bash
+kubectl get pods -n kube-system -o wide
+```
+
+</details>
+
+<details>
+<summary><b>Q5.</b> How do you test connectivity between two Pods?</summary>
+
+```bash
+kubectl exec <pod-a> -- curl -s <pod-b-ip>:80
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> A NetworkPolicy may be blocking traffic. How do you check?</summary>
+
+```bash
+kubectl get netpol -A
+kubectl describe netpol <name> -n <ns>
+```
 
 </details>
 
@@ -2061,6 +2780,33 @@ kubectl config view --kubeconfig=/root/my-kube-config -o jsonpath='{.contexts[?(
 
 </details>
 
+<details>
+<summary><b>Q5.</b> Print Pod names and their node with custom columns.</summary>
+
+```bash
+kubectl get pods -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName
+```
+
+</details>
+
+<details>
+<summary><b>Q6.</b> Loop over items in JSONPath.</summary>
+
+```bash
+kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.capacity.cpu}{"\n"}{end}'
+```
+
+</details>
+
+<details>
+<summary><b>Q7.</b> Get only the image of a Pod.</summary>
+
+```bash
+kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}'
+```
+
+</details>
+
 @@ 16-Ultimate-Mocks/02-Troubleshooting/docs/11-C1-orange-pvc-cka13-trb
 
 <details>
@@ -2081,6 +2827,20 @@ A PVC request cannot be shrunk in place. Export, set the request to the PV size,
 kubectl get pvc orange-pvc-cka13-trb -o yaml > pvc.yaml
 kubectl replace --force -f pvc.yaml
 ```
+
+</details>
+
+<details>
+<summary><b>Q3.</b> Which fields must a PVC match on a PV to bind?</summary>
+
+Access mode, storage class, and a request no larger than the PV's capacity.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> Why use <code>kubectl replace --force</code>?</summary>
+
+It deletes and recreates the object, which is needed when a field cannot be edited in place.
 
 </details>
 
@@ -2116,6 +2876,20 @@ The first works, the second times out.
 
 </details>
 
+<details>
+<summary><b>Q4.</b> How do <code>podSelector</code> and <code>namespaceSelector</code> combine?</summary>
+
+In one `from` item they are ANDed; as separate items they are ORed.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> Why is nothing reachable if a policy has an empty <code>ingress</code> list?</summary>
+
+A policy that selects the Pod with `Ingress` in `policyTypes` and no rules denies all ingress.
+
+</details>
+
 @@ 16-Ultimate-Mocks/04-Storage/docs/10-CI-olive-pvc-cka10-str
 
 <details>
@@ -2136,6 +2910,23 @@ Match `accessModes` and `storageClassName` with the PV (`kubectl get pv`) and se
 <summary><b>Q3.</b> How do you keep the sidecar running?</summary>
 
 Give it a command, such as `command: ["sleep","3600"]`.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> How do you make a volume read-only for one container?</summary>
+
+Set `readOnly: true` on that container's `volumeMounts` entry.
+
+</details>
+
+<details>
+<summary><b>Q5.</b> How do you create a NodePort Service for a Deployment?</summary>
+
+```bash
+kubectl expose deployment olive-app --name=olive-svc-cka10-str --port=5000 --type=NodePort --dry-run=client -o yaml > svc.yaml
+```
+Add `nodePort: 32006` and apply.
 
 </details>
 
@@ -2170,6 +2961,22 @@ subsets:
 
 </details>
 
+<details>
+<summary><b>Q3.</b> When do you need a manual Endpoints object?</summary>
+
+When a Service has no `selector`, for example to point at something outside the cluster.
+
+</details>
+
+<details>
+<summary><b>Q4.</b> How do you verify the fix?</summary>
+
+```bash
+kubectl run t --image=curlimages/curl --rm -it --restart=Never -- curl -s external-webserver-cka03-svcn
+```
+
+</details>
+
 @@ 16-Ultimate-Mocks/09-general/docs/01-cluster-state-questions
 
 <details>
@@ -2183,6 +2990,22 @@ The marker checks cluster state at the end of the exam. Later deployments may ch
 <summary><b>Q2.</b> What is the safe approach?</summary>
 
 Save the command as a script, test it, and re-run it just before ending the exam so the file reflects the final state.
+
+</details>
+
+<details>
+<summary><b>Q3.</b> Give an example command saved to a file.</summary>
+
+```bash
+kubectl top pod -A --sort-by=cpu --no-headers | head -1 > /root/top-pod.txt
+```
+
+</details>
+
+<details>
+<summary><b>Q4.</b> What is a good habit for such questions?</summary>
+
+Keep the command in a script and re-run it just before ending the exam.
 
 </details>
 

@@ -1,0 +1,17 @@
+=== 03-Scheduling/13-Practice-Test-Resource-Limits
+Q: What is the difference between a request and a limit?
+A:
+A request is the amount the scheduler reserves; a limit is the cap the container cannot exceed.
+
+Q: What happens when a container exceeds its memory limit?
+A:
+It is OOMKilled (`Reason: OOMKilled` in `kubectl describe pod`). Exceeding the CPU limit only throttles it.
+
+=== 06-Cluster-Maintenance/03-Practice-Test-OS-Upgrades
+Q: How long does Kubernetes wait before evicting Pods from a node that is down?
+A:
+The default `pod-eviction-timeout` was 5 minutes. A Pod is replaced only if a controller manages it.
+
+Q: Does `drain` move DaemonSet Pods?
+A:
+No. Use `--ignore-daemonsets`, since they are tied to each node.
