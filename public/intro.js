@@ -46,6 +46,8 @@
     let cw = 0, ch = 0, dpr = 1, cur = reduce ? 1 : 0, target = 0;
     const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 97.3 % 100) / 100, y: (i * 53.7 % 100) / 100, r: .4 + (i % 5) * .25, s: .2 + (i % 7) * .06 }));
 
+    let mx = 0, my = 0, mxs = 0, mys = 0, nextShoot = 2.5; const shoots = [];
+    if (!reduce) addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive: true });
     const size = () => { if (!document.body.contains(cv)) return; dpr = Math.min(2, devicePixelRatio || 1); cw = cv.clientWidth; ch = cv.clientHeight; cv.width = cw * dpr; cv.height = ch * dpr; };
     const scroll = () => { const tr = document.getElementById('introTrack'); if (!tr) return; const max = tr.offsetHeight - innerHeight; target = reduce ? 1 : clamp(scrollY / Math.max(1, max)); };
     addEventListener('resize', size); addEventListener('scroll', scroll, { passive: true });
@@ -93,7 +95,8 @@
       const sc = Math.min(aw / W, ah / H) * (1 + .06 * seg(p, .92, 1)), ox = ax + (aw - W * sc) / 2, oy = ay + (ah - H * sc) / 2;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
       const g = ctx.createRadialGradient(cw * .62, ch * .4, 0, cw * .62, ch * .4, Math.max(cw, ch) * .8); g.addColorStop(0, C.bg1); g.addColorStop(1, C.bg2); ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch);
-      ctx.fillStyle = C.ice; for (const s of stars) { ctx.globalAlpha = .12 + .25 * Math.abs(Math.sin(time * s.s + s.x * 9)); ctx.beginPath(); ctx.arc(s.x * cw, ((s.y + p * s.s * .6) % 1) * ch, s.r, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
+      mxs += (mx - mxs) * .06; mys += (my - mys) * .06;
+      ctx.fillStyle = C.ice; for (const s of stars) { ctx.globalAlpha = .12 + .25 * Math.abs(Math.sin(time * s.s + s.x * 9)); ctx.beginPath(); ctx.arc(s.x * cw + mxs * s.r * 14, ((s.y + p * s.s * .6) % 1) * ch + mys * s.r * 10, s.r, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
       ctx.save(); ctx.translate(ox, oy); ctx.scale(sc, sc);
 
       const bob = Math.sin(time * 1.2) * 2.5;
@@ -133,6 +136,15 @@
       caps.forEach((el, i) => { const [a, b] = i < 5 ? [CAPTIONS[i][0], CAPTIONS[i][1]] : [.94, 1.01]; const fin = i === 0 ? 1 : seg(p, a, a + .03), fout = i < 5 ? 1 - seg(p, b - .02, b + .02) : 1, v = Math.min(fin, fout);
         el.style.opacity = v.toFixed(3); el.style.transform = `translateY(${((1 - fin) * 18 + (1 - fout) * -14).toFixed(1)}px)`; el.style.pointerEvents = v > .6 ? 'auto' : 'none'; });
       const idx = p < .155 ? 0 : p < .355 ? 1 : p < .545 ? 2 : p < .785 ? 3 : p < .935 ? 4 : 5; rail.forEach((r, i) => r.classList.toggle('on', i <= idx));
+      if (!reduce) {
+        if (time > nextShoot) { nextShoot = time + 3 + Math.random() * 4; shoots.push({ x: Math.random() * cw * .8, y: Math.random() * ch * .35, vx: 520 + Math.random() * 240, vy: 190 + Math.random() * 90, life: 0 }); }
+        for (let i = shoots.length - 1; i >= 0; i--) {
+          const q = shoots[i]; q.life += 1 / 60; q.x += q.vx / 60; q.y += q.vy / 60;
+          const a = Math.max(0, 1 - q.life / .9); if (a <= 0) { shoots.splice(i, 1); continue; }
+          const g2 = ctx.createLinearGradient(q.x, q.y, q.x - q.vx * .12, q.y - q.vy * .12); g2.addColorStop(0, `rgba(232,238,252,${a})`); g2.addColorStop(1, 'rgba(232,238,252,0)');
+          ctx.strokeStyle = g2; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.x - q.vx * .12, q.y - q.vy * .12); ctx.stroke();
+        }
+      }
       hint.style.opacity = String(1 - seg(p, .01, .05));
       raf = requestAnimationFrame(frame);
     }

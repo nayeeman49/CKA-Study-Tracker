@@ -629,3 +629,20 @@ input[type=checkbox]{accent-color:var(--brand);width:1.05rem;height:1.05rem}
 dialog::backdrop{backdrop-filter:blur(3px);animation:fadeBack .25s ease}
 .side-backdrop{backdrop-filter:blur(2px)}
 .card::before,details.sec::before{display:block}
+
+/* ---- intro motion: one orchestrated entrance, then slow ambient loops ---- */
+@keyframes introRise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes introSweep{to{background-position:-200% 0}}
+@keyframes introFloat{50%{transform:translateY(-7px)}}
+@keyframes introRing{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand,#7aa7ff) 55%,transparent)}70%,100%{box-shadow:0 0 0 14px transparent}}
+.cap.hero .hero-logo{animation:introFloat 5s ease-in-out 1.4s infinite}
+.cap.hero .wm-big{animation:introRise .9s cubic-bezier(.16,1,.3,1) .35s both}
+.cap.hero .wm-big span{background:linear-gradient(100deg,#fff 20%,#9dc0ff 40%,#ffb454 52%,#9dc0ff 64%,#fff 80%) 0 0/220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:introSweep 7s linear 1.2s infinite}
+.cap.hero .tag{animation:introRise .9s cubic-bezier(.16,1,.3,1) .6s both}
+.cap.hero .cta{animation:introRise .9s cubic-bezier(.16,1,.3,1) .85s both}
+.cap.hero .cta .btn:not(.ghost){animation:introRing 2.6s ease-out 2s infinite}
+.intro-top{animation:introRise .8s cubic-bezier(.16,1,.3,1) both}
+.intro-rail li.on{box-shadow:0 0 10px #7aa7ff}
+@media (prefers-reduced-motion:reduce){.cap.hero *,.intro-top{animation:none!important}}
+.intro h1.wm-big{background:none;-webkit-text-fill-color:#fff;color:#fff;width:auto}
+.intro h1.wm-big span{-webkit-text-fill-color:transparent}
