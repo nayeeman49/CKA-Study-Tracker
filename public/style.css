@@ -614,18 +614,18 @@ input[type=checkbox]{accent-color:var(--brand);width:1.05rem;height:1.05rem}
 .stat .big,.item a,.item input[type=checkbox]{transition:none}
 .timer-hero,.timer-hero::after{animation:none!important}
 
-/* ===== v3.3 lite: remove the expensive effects (animated conic borders, spotlight gradients, glows, pulses) ===== */
-.card::before,.card::after,details.sec::before,details.sec::after,.dash .card::after,.timer-hero::before,.timer-hero::after,.nav::after{display:none!important;animation:none!important;background:none!important}
-.timer-pill.on,.clock.run,.nudge.bad,.nudge.behind,.nav a.tab.hero,.nav a.tab.hero .hero-ic,.bar>i::after,.card:hover .bar>i::after,details.sec:hover .bar>i::after{animation:none!important}
-.bar>i::after{display:none}
-.card:hover,details.sec:hover{box-shadow:none}
-.btn:hover:not(:disabled){transform:translateY(-1px);filter:none;box-shadow:none}
-.btn:hover{filter:none;box-shadow:none}
-.nav .brand:hover{transform:none;filter:none}
-.clock.run{text-shadow:none}
-.dash .card{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 18px -8px rgba(0,0,0,.4)!important}
-.dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 18px -8px rgba(0,0,0,.4)!important;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)!important}
-:root[data-theme=light] .dash .card,:root[data-theme=light] .dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 16px -8px rgba(40,55,110,.25)!important}
-.dash .card:active{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext)!important}
-dialog::backdrop{backdrop-filter:none;animation:none}
-.side-backdrop{backdrop-filter:none}
+/* ===== v3.4: all hover/ambient effects restored except the spinning conic border ===== */
+.card::after,details.sec::after{display:none!important;animation:none!important}
+.dash .card::after{display:block!important;opacity:0}
+.dash .card:hover::after{opacity:0}
+.card:hover,details.sec:hover{box-shadow:0 0 0 1px color-mix(in srgb,var(--brand) 25%,transparent),0 12px 34px -14px var(--glow)}
+.dash .card,.dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 18px -8px rgba(0,0,0,.4)}
+:root[data-theme=light] .dash .card,:root[data-theme=light] .dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 16px -8px rgba(40,55,110,.25)}
+.btn:hover:not(:disabled){transform:translateY(-2px) scale(1.04);filter:brightness(1.1);box-shadow:0 8px 22px -6px var(--glow)}
+.nav .brand:hover{transform:scale(1.05);filter:drop-shadow(0 0 10px var(--glow))}
+.nav a.tab:hover{transform:translateY(-1px)}
+.nav a.tab.hero .hero-ic{animation:heroPulse 2.4s ease-in-out infinite}
+.nav a.tab.hero,.nav a.tab.hero:hover,.nav a.tab.hero.on{animation:none}
+dialog::backdrop{backdrop-filter:blur(3px);animation:fadeBack .25s ease}
+.side-backdrop{backdrop-filter:blur(2px)}
+.card::before,details.sec::before{display:block}

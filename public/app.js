@@ -854,6 +854,15 @@ function renderSettings() {
 
 boot();
 
+// card spotlight: the glow follows the pointer
+let _pm = null;
+document.addEventListener('pointermove', e => {
+  const c = e.target.closest && e.target.closest('.card, details.sec, .nav a.tab'); if (!c) return;
+  if (_pm) { _pm.c = c; _pm.x = e.clientX; _pm.y = e.clientY; return; }
+  _pm = { c, x: e.clientX, y: e.clientY };
+  requestAnimationFrame(() => { const { c, x, y } = _pm; _pm = null; const r = c.getBoundingClientRect(); c.style.setProperty('--mx', (x - r.left) + 'px'); c.style.setProperty('--my', (y - r.top) + 'px'); });
+}, { passive: true });
+
 // button ripple
 document.addEventListener('pointerdown', e => {
   const b = e.target.closest && e.target.closest('.btn'); if (!b || b.disabled) return;
