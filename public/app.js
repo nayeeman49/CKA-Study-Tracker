@@ -854,15 +854,6 @@ function renderSettings() {
 
 boot();
 
-// card spotlight: the glow follows the pointer
-let _pm = null;
-document.addEventListener('pointermove', e => {
-  const c = e.target.closest && e.target.closest('.card, details.sec, .nav a.tab'); if (!c) return;
-  if (_pm) { _pm.c = c; _pm.x = e.clientX; _pm.y = e.clientY; return; }
-  _pm = { c, x: e.clientX, y: e.clientY };
-  requestAnimationFrame(() => { const { c, x, y } = _pm; _pm = null; const r = c.getBoundingClientRect(); c.style.setProperty('--mx', (x - r.left) + 'px'); c.style.setProperty('--my', (y - r.top) + 'px'); });
-}, { passive: true });
-
 // button ripple
 document.addEventListener('pointerdown', e => {
   const b = e.target.closest && e.target.closest('.btn'); if (!b || b.disabled) return;
@@ -880,7 +871,6 @@ document.addEventListener('pointerdown', e => {
     const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
     el.style.setProperty('--ry', ((x - .5) * 9).toFixed(2) + 'deg');
     el.style.setProperty('--rx', ((.5 - y) * 7).toFixed(2) + 'deg');
-    el.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); el.style.setProperty('--my', (y * 100).toFixed(1) + '%');
   };
   const reset = t => { if (!t) return; t.style.removeProperty('--rx'); t.style.removeProperty('--ry'); };
   document.addEventListener('pointermove', e => {

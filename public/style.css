@@ -613,3 +613,19 @@ input[type=checkbox]{accent-color:var(--brand);width:1.05rem;height:1.05rem}
 .dash .card::after{transition:opacity .12s}
 .stat .big,.item a,.item input[type=checkbox]{transition:none}
 .timer-hero,.timer-hero::after{animation:none!important}
+
+/* ===== v3.3 lite: remove the expensive effects (animated conic borders, spotlight gradients, glows, pulses) ===== */
+.card::before,.card::after,details.sec::before,details.sec::after,.dash .card::after,.timer-hero::before,.timer-hero::after,.nav::after{display:none!important;animation:none!important;background:none!important}
+.timer-pill.on,.clock.run,.nudge.bad,.nudge.behind,.nav a.tab.hero,.nav a.tab.hero .hero-ic,.bar>i::after,.card:hover .bar>i::after,details.sec:hover .bar>i::after{animation:none!important}
+.bar>i::after{display:none}
+.card:hover,details.sec:hover{box-shadow:none}
+.btn:hover:not(:disabled){transform:translateY(-1px);filter:none;box-shadow:none}
+.btn:hover{filter:none;box-shadow:none}
+.nav .brand:hover{transform:none;filter:none}
+.clock.run{text-shadow:none}
+.dash .card{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 18px -8px rgba(0,0,0,.4)!important}
+.dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 18px -8px rgba(0,0,0,.4)!important;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)!important}
+:root[data-theme=light] .dash .card,:root[data-theme=light] .dash .card:hover{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 10px 16px -8px rgba(40,55,110,.25)!important}
+.dash .card:active{box-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext)!important}
+dialog::backdrop{backdrop-filter:none;animation:none}
+.side-backdrop{backdrop-filter:none}
