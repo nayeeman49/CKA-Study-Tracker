@@ -63,6 +63,24 @@ async function boot() {
 // Set to your Ko-fi / Buy Me a Coffee page, e.g. 'https://ko-fi.com/yourname'. Leave '' to hide the button.
 const SUPPORT_URL = 'https://ko-fi.com/nayeeman49';
 
+const THEMES = [['midnight', 'Midnight'], ['forest', 'Forest'], ['graphite', 'Graphite'], ['light', 'Light']];
+function themeSwitcher() {
+  const cur = document.documentElement.dataset.theme || 'midnight';
+  return `<div class="theme-wrap"><button class="theme-btn" data-theme-toggle aria-label="Change theme" aria-haspopup="true" title="Theme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+    <div class="theme-pop" role="menu">${THEMES.map(([k, n]) => `<button role="menuitem" data-set-theme="${k}" aria-pressed="${k === cur}"><i class="t-${k}"></i>${n}</button>`).join('')}</div></div>`;
+}
+document.addEventListener('click', e => {
+  const set = e.target.closest('[data-set-theme]');
+  if (set) {
+    const t = set.dataset.setTheme; document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('theme', t); } catch {}
+    document.querySelectorAll('[data-set-theme]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setTheme === t)));
+    document.querySelectorAll('.theme-pop.open').forEach(p => p.classList.remove('open')); return;
+  }
+  const tg = e.target.closest('[data-theme-toggle]');
+  document.querySelectorAll('.theme-pop').forEach(p => { if (tg && p.parentNode.contains(tg)) p.classList.toggle('open'); else p.classList.remove('open'); });
+});
+
 function shell(active, inner) {
   const st = S.stats;
   return `
@@ -72,6 +90,7 @@ function shell(active, inner) {
       .map(([h, t]) => `<a class="tab ${h === 'curriculum' ? 'hero' : ''} ${active === h ? 'on' : ''}" href="#/${h}">${h === 'curriculum' ? '<span class="hero-ic">✦</span>' : ''}${t}</a>`).join('')}
     <span class="sp"></span>
     <button class="timer-pill ${S.timer ? (S.timer.state === 'running' ? 'on' : 'paused') : ''}" data-timer="open" title="Study timer">⏱ <span data-clock-short>${S.timer ? fmtClock(tElapsed()) : 'Timer'}</span></button>
+    ${themeSwitcher()}
     <span class="chip" title="Current study streak">🔥 ${st ? st.streak : 0} day${st && st.streak === 1 ? '' : 's'}</span>
     <a class="tab ${active === 'settings' ? 'on' : ''}" href="#/settings">${esc(S.user.displayName)}</a>
   </div></header>
