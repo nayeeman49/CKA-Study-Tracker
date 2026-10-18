@@ -61,7 +61,7 @@ async function boot() {
 
 // ---------- layout ----------
 // Set to your Ko-fi / Buy Me a Coffee page, e.g. 'https://ko-fi.com/yourname'. Leave '' to hide the button.
-const SUPPORT_URL = '';
+const SUPPORT_URL = 'https://ko-fi.com/nayeeman49';
 
 function shell(active, inner) {
   const st = S.stats;
