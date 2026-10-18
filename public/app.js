@@ -4,6 +4,7 @@ const $app = document.getElementById('app');
 const S = { timer: null, visited: {}, res: null, sideTab: 'videos', user: null, cur: null, items: new Map(), order: [], prog: {}, plan: {}, log: [], stats: null, calMonth: null, calSel: null };
 
 // ---------- utils ----------
+const kindLbl = k => (k === 'lab' ? 'Q&A' : k);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = n => String(n).padStart(2, '0');
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -212,7 +213,7 @@ function renderDashboard() {
     const it = S.items.get(id);
     return `<div class="item"><input type="checkbox" data-act="done" data-id="${esc(id)}" aria-label="Mark ${esc(it.title)} done">
       <div class="t"><a href="#/lesson/${esc(id)}" target="_blank" rel="noopener">${esc(it.title)}</a><div class="muted small">${esc(it.section)} · ${fmtMin(it.minutes)}${late ? ' · <span style="color:var(--bad)">overdue</span>' : ''}</div></div>
-      <span class="chip ${it.kind}">${it.kind}</span></div>`;
+      <span class="chip ${it.kind}">${kindLbl(it.kind)}</span></div>`;
   }).join('');
   $app.innerHTML = shell('', `
     <div class="nudge ${nd.cls}"><div>${nd.html}</div>${nd.cta ? `<a class="btn sm" href="${nd.cta[1]}">${nd.cta[0]}</a>` : ''}</div>
@@ -272,7 +273,7 @@ function renderCurriculum() {
         <span class="dot" style="background:${domainOf(l.domain).color}" title="${esc(domainOf(l.domain).name)}"></span>
         <div class="t"><a href="#/lesson/${esc(l.id)}" target="_blank" rel="noopener">${esc(l.title)}</a></div>
         ${S.plan[l.id] && !S.prog[l.id] ? `<span class="chip" title="Scheduled">📅 ${fmtDay(S.plan[l.id])}</span>` : ''}
-        ${l.isNew ? '<span class="chip" style="color:var(--brand)">new</span>' : ''}<span class="chip ${l.kind}">${l.kind}</span><span class="muted small" style="width:3.2em;text-align:right">${fmtMin(l.minutes)}</span></div>`).join('')}</details>`;
+        ${l.isNew ? '<span class="chip" style="color:var(--brand)">new</span>' : ''}<span class="chip ${l.kind}">${kindLbl(l.kind)}</span><span class="muted small" style="width:3.2em;text-align:right">${fmtMin(l.minutes)}</span></div>`).join('')}</details>`;
   }).join('');
   $app.innerHTML = shell('curriculum', `
     <h1>Curriculum</h1>
@@ -320,9 +321,10 @@ async function renderLesson(id) {
   const i = S.order.indexOf(id), prev = S.order[i - 1], next = S.order[i + 1], it = j.item, done = !!S.prog[id];
   $app.innerHTML = shell('curriculum', `
     <div class="with-side"><div class="lesson">
-      <p class="small muted"><a href="#/curriculum">Curriculum</a> › ${esc(it.section)} · <span class="chip ${it.kind}">${it.kind}</span> · ≈ ${fmtMin(it.minutes)} · ${esc(domainOf(it.domain).name)}</p>
+      <p class="small muted"><a href="#/curriculum">Curriculum</a> › ${esc(it.section)} · <span class="chip ${it.kind}">${kindLbl(it.kind)}</span> · ≈ ${fmtMin(it.minutes)} · ${esc(domainOf(it.domain).name)}</p>
       <div class="title-row"><h1>${esc(it.title)}</h1>${(j.embeds || []).length ? '<button type="button" class="btn ghost sm skipvid" id="skipVid" title="Jump to the video">🎬 Skip to video ↓</button>' : ''}</div>
-      ${j.guideHtml ? `<section class="guide"><div class="guide-h">📝 Study guide <span class="muted small">how it works and how to do the task</span></div>${it.kind !== 'lesson' ? '<p class="muted small" style="margin-top:0">The hands-on tasks themselves run in your own lab/cluster. This guide gives the approach and the typical commands; exact names and values in your lab may differ.</p>' : ''}<div class="md">${j.guideHtml}</div></section><h2 class="muted" style="margin-top:2rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em">Additional explanation and material:</h2>` : ''}
+      ${it.kind !== 'lesson' ? `<div class="labnote" role="note">ℹ️ <span><b>Quick note:</b> these are practice questions and answers, not hands-on labs. The real labs are in the CKA course on <a href="https://learn.kodekloud.com/learn/courses/cka-certification-course-certified-kubernetes-administrator" target="_blank" rel="noopener noreferrer">KodeKloud</a> or <a href="https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/" target="_blank" rel="noopener noreferrer">Udemy</a>. Try each question yourself first, then open the answer.</span></div>` : ''}
+      ${j.guideHtml ? `<section class="guide"><div class="guide-h">${it.kind !== 'lesson' ? (j.guideHtml.includes('<details') ? '❓ Questions and answers <span class="muted small">click a question to show the answer</span>' : '📝 Approach and tips') : '📝 Study guide <span class="muted small">how it works and how to do the task</span>'}</div><div class="md">${j.guideHtml}</div></section>${it.kind !== 'lesson' ? '' : '<h2 class="muted" style="margin-top:2rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em">Additional explanation and material:</h2>'}` : ''}
       <div class="md">${j.html.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/, '')}</div>
       ${(j.embeds || []).map(v => `<section class="embed" data-vid><h3>🎬 ${esc(v.title)}</h3><div class="ratio"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.youtubeId)}" title="${esc(v.title)}" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><p class="small muted"><a href="https://www.youtube.com/watch?v=${esc(v.youtubeId)}" target="_blank" rel="noopener">Watch on YouTube ↗</a></p></section>`).join('')}
       <div class="sticky-bar">

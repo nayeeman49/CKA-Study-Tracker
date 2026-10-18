@@ -115,7 +115,7 @@
         },
         {
           "id": "02-Core-Concepts/13-Practice-Test-PODs",
-          "title": "Lab: PODs",
+          "title": "Lab Q&A: PODs",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -129,7 +129,7 @@
         },
         {
           "id": "02-Core-Concepts/15-Practice-Tests-ReplicaSet",
-          "title": "Practice Tests ReplicaSet",
+          "title": "Lab Q&A: ReplicaSet",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -143,7 +143,7 @@
         },
         {
           "id": "02-Core-Concepts/17-Practice-Tests-Deployments",
-          "title": "Practice Tests Deployments",
+          "title": "Lab Q&A: Deployments",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -157,7 +157,7 @@
         },
         {
           "id": "02-Core-Concepts/19-Practice-Test-Namespaces",
-          "title": "Lab: Namespaces",
+          "title": "Lab Q&A: Namespaces",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -178,7 +178,7 @@
         },
         {
           "id": "02-Core-Concepts/22-Practice-Test-Services",
-          "title": "Lab: Services",
+          "title": "Lab Q&A: Services",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -192,7 +192,7 @@
         },
         {
           "id": "02-Core-Concepts/24-Practice-Test-Imperative-Commands",
-          "title": "Lab: Imperative Commands",
+          "title": "Lab Q&A: Imperative Commands",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -213,7 +213,7 @@
         },
         {
           "id": "03-Scheduling/03-Practice-Test-Manual-Scheduling",
-          "title": "Lab: Manual Scheduling",
+          "title": "Lab Q&A: Manual Scheduling",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -227,7 +227,7 @@
         },
         {
           "id": "03-Scheduling/05-Practice-Test-Labels-and-Selectors",
-          "title": "Lab: Labels and Selectors",
+          "title": "Lab Q&A: Labels and Selectors",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -241,7 +241,7 @@
         },
         {
           "id": "03-Scheduling/07-Practice-Test-Taints-and-Tolerations",
-          "title": "Lab: Taints and Tolerations",
+          "title": "Lab Q&A: Taints and Tolerations",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -262,7 +262,7 @@
         },
         {
           "id": "03-Scheduling/10-Practice-Test-Node-Affinity",
-          "title": "Lab: Node Affinity",
+          "title": "Lab Q&A: Node Affinity",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -283,7 +283,7 @@
         },
         {
           "id": "03-Scheduling/13-Practice-Test-Resource-Limits",
-          "title": "Lab: Resource Limits",
+          "title": "Lab Q&A: Resource Limits",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -297,7 +297,7 @@
         },
         {
           "id": "03-Scheduling/15-Practice-Test-DaemonSets",
-          "title": "Lab: DaemonSets",
+          "title": "Lab Q&A: DaemonSets",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -311,7 +311,7 @@
         },
         {
           "id": "03-Scheduling/17-Practice-Test-StaticPods",
-          "title": "Lab: StaticPods",
+          "title": "Lab Q&A: StaticPods",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -325,7 +325,7 @@
         },
         {
           "id": "03-Scheduling/19-Practice-Test-Multiple-Schedulers",
-          "title": "Lab: Multiple Schedulers",
+          "title": "Lab Q&A: Multiple Schedulers",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -353,7 +353,7 @@
         },
         {
           "id": "04-Logging-and-Monitoring/03-Practice-Test-Monitor-Cluster-Components",
-          "title": "Lab: Monitor Cluster Components",
+          "title": "Lab Q&A: Monitor Cluster Components",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -367,7 +367,7 @@
         },
         {
           "id": "04-Logging-and-Monitoring/06-Practice-Test-Managing-Application-Logs",
-          "title": "Lab: Managing Application Logs",
+          "title": "Lab Q&A: Managing Application Logs",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -388,7 +388,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/03-Practice-Test-RollingUpdates-Rollback",
-          "title": "Lab: RollingUpdates Rollback",
+          "title": "Lab Q&A: RollingUpdates Rollback",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -409,7 +409,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/06-Practice-Test-Commands-and-Arguments",
-          "title": "Lab: Commands and Arguments",
+          "title": "Lab Q&A: Commands and Arguments",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -430,7 +430,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/09-Practice-Test-Env-Variables",
-          "title": "Lab: Env Variables",
+          "title": "Lab Q&A: Env Variables",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -444,7 +444,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/11.Practice-Test-Secrets",
-          "title": "Lab: Secrets",
+          "title": "Lab Q&A: Secrets",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -458,7 +458,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/13-Practice-Test-Multi-Container-Pods",
-          "title": "Lab: Multi Container Pods",
+          "title": "Lab Q&A: Multi Container Pods",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -479,7 +479,7 @@
         },
         {
           "id": "05-Application-Lifecycle-Management/16-Practice-Test-Init-Containers",
-          "title": "Lab: Init Containers",
+          "title": "Lab Q&A: Init Containers",
           "domain": "workloads",
           "kind": "lab",
           "minutes": 30
@@ -507,7 +507,7 @@
         },
         {
           "id": "06-Cluster-Maintenance/03-Practice-Test-OS-Upgrades",
-          "title": "Lab: OS Upgrades",
+          "title": "Lab Q&A: OS Upgrades",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -528,7 +528,7 @@
         },
         {
           "id": "06-Cluster-Maintenance/06-Practice-Test-Cluster-Upgrade-Process",
-          "title": "Lab: Cluster Upgrade Process",
+          "title": "Lab Q&A: Cluster Upgrade Process",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -549,14 +549,14 @@
         },
         {
           "id": "06-Cluster-Maintenance/09-Practice-Test-Backup-and-Restore-Methods",
-          "title": "Lab: Backup and Restore Methods",
+          "title": "Lab Q&A: Backup and Restore Methods",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "06-Cluster-Maintenance/10-Practice-Test-Backup-and-Restore-Methods-2",
-          "title": "Lab: Backup and Restore Methods 2",
+          "title": "Lab Q&A: Backup and Restore Methods 2",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -626,7 +626,7 @@
         },
         {
           "id": "07-Security/10-Practice-Test-View-Certificate-Details",
-          "title": "Lab: View Certificate Details",
+          "title": "Lab Q&A: View Certificate Details",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -640,7 +640,7 @@
         },
         {
           "id": "07-Security/12-Practice-Test-Certificates-API",
-          "title": "Lab: Certificates API",
+          "title": "Lab Q&A: Certificates API",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -654,7 +654,7 @@
         },
         {
           "id": "07-Security/14-Practice-Test-KubeConfig",
-          "title": "Lab: KubeConfig",
+          "title": "Lab Q&A: KubeConfig",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -682,7 +682,7 @@
         },
         {
           "id": "07-Security/18-Practice-Test-RBAC",
-          "title": "Lab: RBAC",
+          "title": "Lab Q&A: RBAC",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -696,7 +696,7 @@
         },
         {
           "id": "07-Security/20-Practice-Test-Cluster-Roles",
-          "title": "Lab: Cluster Roles",
+          "title": "Lab Q&A: Cluster Roles",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -710,7 +710,7 @@
         },
         {
           "id": "07-Security/22-Practice-Test-Service-Accounts",
-          "title": "Lab: Service Accounts",
+          "title": "Lab Q&A: Service Accounts",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -724,7 +724,7 @@
         },
         {
           "id": "07-Security/24-Practice-Test-Image-Security",
-          "title": "Lab: Image Security",
+          "title": "Lab Q&A: Image Security",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -738,7 +738,7 @@
         },
         {
           "id": "07-Security/26-Practice-Test-Security-Context",
-          "title": "Lab: Security Context",
+          "title": "Lab Q&A: Security Context",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -752,7 +752,7 @@
         },
         {
           "id": "07-Security/28-Practice-Test-Network-Policies",
-          "title": "Lab: Network Policies",
+          "title": "Lab Q&A: Network Policies",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -829,7 +829,7 @@
         },
         {
           "id": "08-Storage/10-Practice-Test-Persistent-Volume-Claims",
-          "title": "Lab: Persistent Volume Claims",
+          "title": "Lab Q&A: Persistent Volume Claims",
           "domain": "storage",
           "kind": "lab",
           "minutes": 30
@@ -843,7 +843,7 @@
         },
         {
           "id": "08-Storage/13-Practice-Test-Storage-Class",
-          "title": "Lab: Storage Class",
+          "title": "Lab Q&A: Storage Class",
           "domain": "storage",
           "kind": "lab",
           "minutes": 30
@@ -913,7 +913,7 @@
         },
         {
           "id": "09-Networking/09-Practice-Test-Explore-Env",
-          "title": "Lab: Explore Env",
+          "title": "Lab Q&A: Explore Env",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -941,14 +941,14 @@
         },
         {
           "id": "09-Networking/13-Practice-Test-CNI-weave",
-          "title": "Lab: CNI weave",
+          "title": "Lab Q&A: CNI weave",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "09-Networking/14-Practice-Test-Deploy-Network-Solution",
-          "title": "Lab: Deploy Network Solution",
+          "title": "Lab Q&A: Deploy Network Solution",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -962,7 +962,7 @@
         },
         {
           "id": "09-Networking/16-Practice-Test-Networking-weave",
-          "title": "Lab: Networking weave",
+          "title": "Lab Q&A: Networking weave",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -976,7 +976,7 @@
         },
         {
           "id": "09-Networking/18-Practice-Test-Service-Networking",
-          "title": "Lab: Service Networking",
+          "title": "Lab Q&A: Service Networking",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -997,7 +997,7 @@
         },
         {
           "id": "09-Networking/21-Practice-Test-CoreDNS-in-Kubernetes",
-          "title": "Lab: CoreDNS in Kubernetes",
+          "title": "Lab Q&A: CoreDNS in Kubernetes",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -1018,14 +1018,14 @@
         },
         {
           "id": "09-Networking/24-Practice-Test-CKA-Ingress-Net-1",
-          "title": "Lab: CKA Ingress Net 1",
+          "title": "Lab Q&A: CKA Ingress Net 1",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "09-Networking/25-Practice-Test-CKA-Ingress-Net-2",
-          "title": "Lab: CKA Ingress Net 2",
+          "title": "Lab Q&A: CKA Ingress Net 2",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
@@ -1102,7 +1102,7 @@
         },
         {
           "id": "11-Install-Kubernetes-the-kubeadm-way/05-Practice-Test-Deploy-Kubernetes-Cluster-using-Kubeadm",
-          "title": "Lab: Deploy Kubernetes Cluster using Kubeadm",
+          "title": "Lab Q&A: Deploy Kubernetes Cluster using Kubeadm",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30
@@ -1137,7 +1137,7 @@
         },
         {
           "id": "12-Troubleshooting/05-Practice-Test-Control-Plane-Failure",
-          "title": "Lab: Control Plane Failure",
+          "title": "Lab Q&A: Control Plane Failure",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -1158,7 +1158,7 @@
         },
         {
           "id": "12-Troubleshooting/08-Practice-Test-Worker-Node-Failure",
-          "title": "Lab: Worker Node Failure",
+          "title": "Lab Q&A: Worker Node Failure",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -1172,7 +1172,7 @@
         },
         {
           "id": "12-Troubleshooting/10-Practice-Test-Troubleshoot-Network",
-          "title": "Lab: Troubleshoot Network",
+          "title": "Lab Q&A: Troubleshoot Network",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -1254,7 +1254,7 @@
         },
         {
           "id": "13-Other-Topics/04-Practice-Test-Advance-Kubectl-Commands",
-          "title": "Lab: Advance Kubectl Commands",
+          "title": "Lab Q&A: Advance Kubectl Commands",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
@@ -1268,35 +1268,35 @@
       "lessons": [
         {
           "id": "16-Ultimate-Mocks/02-Troubleshooting/docs/11-C1-orange-pvc-cka13-trb",
-          "title": "C1 orange pvc cka13 trb",
+          "title": "Mock Q&A: C1 orange pvc cka13 trb",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "16-Ultimate-Mocks/02-Troubleshooting/docs/19-C1-netpol-cyan-pod-cka28-trb",
-          "title": "C1 netpol cyan pod cka28 trb",
+          "title": "Mock Q&A: C1 netpol cyan pod cka28 trb",
           "domain": "trouble",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "16-Ultimate-Mocks/04-Storage/docs/10-CI-olive-pvc-cka10-str",
-          "title": "CI olive pvc cka10 str",
+          "title": "Mock Q&A: CI olive pvc cka10 str",
           "domain": "storage",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "16-Ultimate-Mocks/05-Services-Networking/docs/03-C3-External-Webserver",
-          "title": "C3 External Webserver",
+          "title": "Mock Q&A: C3 External Webserver",
           "domain": "network",
           "kind": "lab",
           "minutes": 30
         },
         {
           "id": "16-Ultimate-Mocks/09-general/docs/01-cluster-state-questions",
-          "title": "cluster state questions",
+          "title": "Mock Q&A: cluster state questions",
           "domain": "arch",
           "kind": "lab",
           "minutes": 30

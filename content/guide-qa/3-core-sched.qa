@@ -1,0 +1,703 @@
+=== 02-Core-Concepts/13-Practice-Test-PODs
+Q: Create a Pod named `redis` using the `redis123` image, then find out why it fails.
+A:
+```bash
+kubectl run redis --image=redis123
+kubectl describe pod redis      # Events: ErrImagePull / ImagePullBackOff
+```
+Fix the image name in place: `kubectl edit pod redis` (image is one of the few editable Pod fields), set `image: redis`.
+
+Q: How do you see how many containers are in a Pod and how many are ready?
+A:
+```bash
+kubectl get pods              # READY column, e.g. 2/3
+kubectl describe pod <pod>
+```
+
+Q: How do you find which node a Pod runs on, and its image?
+A:
+```bash
+kubectl get pods -o wide
+kubectl describe pod <pod> | grep -E "Node:|Image:"
+```
+
+Q: Generate a Pod YAML without creating it.
+A:
+```bash
+kubectl run nginx --image=nginx --dry-run=client -o yaml > pod.yaml
+```
+
+=== 02-Core-Concepts/15-Practice-Tests-ReplicaSet
+Q: A ReplicaSet is not creating Pods. How do you find the reason?
+A:
+```bash
+kubectl describe rs <name>
+```
+Check the Events and that `selector.matchLabels` matches the Pod template labels, and that the image name is valid.
+
+Q: Scale a ReplicaSet to 5 replicas.
+A:
+```bash
+kubectl scale rs new-replica-set --replicas=5
+```
+
+Q: Delete one Pod of a ReplicaSet. What happens?
+A:
+The ReplicaSet creates a replacement to keep the desired count.
+
+Q: Fix a ReplicaSet whose Pods use a bad image.
+A:
+```bash
+kubectl edit rs new-replica-set      # fix image
+kubectl delete pod -l <label>        # existing Pods keep the old image until deleted
+```
+
+=== 02-Core-Concepts/17-Practice-Tests-Deployments
+Q: Create a Deployment `httpd-frontend` with 3 replicas of `httpd:2.4-alpine`.
+A:
+```bash
+kubectl create deployment httpd-frontend --image=httpd:2.4-alpine --replicas=3
+```
+
+Q: How do you see the Deployment's strategy, image and the ReplicaSet it owns?
+A:
+```bash
+kubectl describe deployment httpd-frontend
+kubectl get rs
+```
+
+Q: Update the image and watch the rollout.
+A:
+```bash
+kubectl set image deployment/httpd-frontend httpd=httpd:2.4-alpine
+kubectl rollout status deployment/httpd-frontend
+```
+
+Q: Change the strategy to Recreate.
+A:
+```bash
+kubectl edit deployment <name>      # strategy.type: Recreate (remove rollingUpdate block)
+```
+
+=== 02-Core-Concepts/19-Practice-Test-Namespaces
+Q: List namespaces and count the Pods in one.
+A:
+```bash
+kubectl get ns
+kubectl get pods -n research --no-headers | wc -l
+```
+
+Q: Create a Pod in a namespace.
+A:
+```bash
+kubectl run redis --image=redis -n finance
+```
+
+Q: Find which namespace a Pod `blue` lives in.
+A:
+```bash
+kubectl get pods -A | grep blue
+```
+
+Q: How do you reach a Service in another namespace by DNS?
+A:
+`<service>.<namespace>.svc.cluster.local`, for example `db-service.dev.svc.cluster.local`.
+
+=== 02-Core-Concepts/22-Practice-Test-Services
+Q: Get a Service's type, port, target port and endpoints.
+A:
+```bash
+kubectl get svc
+kubectl describe svc kubernetes
+kubectl get endpoints
+```
+
+Q: Create a Service for a Deployment on port 80 of type NodePort 30080.
+A:
+```bash
+kubectl expose deployment simple-webapp-deployment --name=webapp-service --port=8080 --target-port=8080 --type=NodePort --dry-run=client -o yaml > svc.yaml
+```
+Edit the file to add `nodePort: 30080`, then `kubectl apply -f svc.yaml`.
+
+Q: A Service has no endpoints. Why?
+A:
+The Service `selector` does not match any Pod labels, or the matching Pods are not Ready.
+
+Q: Quickly create a Pod and a ClusterIP Service together.
+A:
+```bash
+kubectl run redis --image=redis --port=6379 --expose
+```
+
+=== 02-Core-Concepts/24-Practice-Test-Imperative-Commands
+Q: Create an nginx Pod with a label `tier=db`.
+A:
+```bash
+kubectl run redis --image=redis:alpine --labels=tier=db
+```
+
+Q: Expose that Pod on port 6379 with a Service.
+A:
+```bash
+kubectl expose pod redis --port=6379 --name=redis-service
+```
+
+Q: Create a Deployment with 2 replicas, then a Pod with a custom port.
+A:
+```bash
+kubectl create deployment webapp --image=kodekloud/webapp-color --replicas=3
+kubectl run custom-nginx --image=nginx --port=8080
+```
+
+Q: Create a NodePort service from a Pod with a specific node port.
+A:
+`kubectl expose` cannot set `nodePort`. Generate YAML with `--dry-run=client -o yaml`, add `nodePort`, and apply it.
+
+=== 03-Scheduling/03-Practice-Test-Manual-Scheduling
+Q: A Pod is `Pending` with no node. How do you place it manually?
+A:
+Set `nodeName` in the Pod spec. It cannot be changed on a live Pod, so force-replace:
+```bash
+kubectl replace --force -f nginx.yaml
+```
+
+Q: Alternatively, bind an existing Pod without recreating it.
+A:
+POST a `Binding` object to the API. In practice, delete and recreate with `nodeName`.
+
+Q: Why is the Pod Pending in the first place?
+A:
+The scheduler is not running. Check `kubectl get pods -n kube-system | grep scheduler`.
+
+=== 03-Scheduling/05-Practice-Test-Labels-and-Selectors
+Q: List Pods with a specific label.
+A:
+```bash
+kubectl get pods -l env=dev
+kubectl get pods --selector env=dev --no-headers | wc -l
+```
+
+Q: Select by several labels.
+A:
+```bash
+kubectl get all --selector env=prod,bu=finance,tier=frontend
+```
+
+Q: Fix a ReplicaSet whose selector does not match its template.
+A:
+Make `spec.selector.matchLabels` match `spec.template.metadata.labels`.
+
+=== 03-Scheduling/07-Practice-Test-Taints-and-Tolerations
+Q: Taint a node so Pods avoid it.
+A:
+```bash
+kubectl taint nodes node01 spray=mortein:NoSchedule
+```
+
+Q: Create a Pod that tolerates that taint.
+A:
+```yaml
+spec:
+  tolerations:
+  - key: spray
+    operator: Equal
+    value: mortein
+    effect: NoSchedule
+```
+
+Q: Remove a taint.
+A:
+```bash
+kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
+```
+
+Q: Does a toleration force a Pod onto the tainted node?
+A:
+No, it only allows it. Use node affinity or `nodeSelector` to attract it.
+
+=== 03-Scheduling/10-Practice-Test-Node-Affinity
+Q: Label a node.
+A:
+```bash
+kubectl label node node01 color=blue
+```
+
+Q: Create a Deployment `blue` whose Pods must run on nodes labelled `color=blue`.
+A:
+```yaml
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: color
+          operator: In
+          values: ["blue"]
+```
+
+Q: Require a node that has a label at all, whatever its value.
+A:
+Use `operator: Exists` with just the `key`.
+
+=== 04-Logging-and-Monitoring/03-Practice-Test-Monitor-Cluster-Components
+Q: Deploy metrics-server and check it works.
+A:
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl top node
+```
+
+Q: Which Pod uses the most memory/CPU?
+A:
+```bash
+kubectl top pod --sort-by=memory
+kubectl top pod --sort-by=cpu
+```
+
+Q: `kubectl top` says "Metrics API not available".
+A:
+Metrics-server is missing or not Ready. Check `kubectl get pods -n kube-system` and its logs.
+
+=== 06-Cluster-Maintenance/09-Practice-Test-Backup-and-Restore-Methods
+Q: Which etcd version is running and where are its certs?
+A:
+```bash
+kubectl -n kube-system describe pod etcd-controlplane | grep -E "Image:|--cert|--key|--trusted-ca|--listen-client"
+```
+
+Q: Take an etcd snapshot.
+A:
+```bash
+ETCDCTL_API=3 etcdctl snapshot save /opt/snapshot-pre-boot.db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
+```
+
+Q: Restore it.
+A:
+```bash
+etcdutl snapshot restore /opt/snapshot-pre-boot.db --data-dir /var/lib/etcd-from-backup
+```
+Then edit `/etc/kubernetes/manifests/etcd.yaml` so the `etcd-data` hostPath is `/var/lib/etcd-from-backup`; the static Pod restarts itself.
+
+=== 06-Cluster-Maintenance/10-Practice-Test-Backup-and-Restore-Methods-2
+Q: How do you tell whether etcd is stacked or external?
+A:
+Stacked etcd runs as a static Pod on the control plane. External etcd is a separate server: check `--etcd-servers` in the API server manifest.
+
+Q: How do you back up external etcd?
+A:
+SSH to the etcd host and run `etcdctl snapshot save` with that host's certs, then copy the file back.
+
+Q: How do you restore external etcd?
+A:
+Stop the etcd service, restore to a new data dir, point `--data-dir` in the systemd unit at it, `chown etcd:etcd`, `systemctl daemon-reload`, then start etcd and restart the control plane components.
+
+=== 07-Security/22-Practice-Test-Service-Accounts
+Q: Create a ServiceAccount and a token.
+A:
+```bash
+kubectl create serviceaccount dashboard-sa
+kubectl create token dashboard-sa
+```
+
+Q: Make a Deployment use that ServiceAccount.
+A:
+Set `serviceAccountName: dashboard-sa` in the Pod template.
+
+Q: Why does the default token no longer appear as a Secret?
+A:
+Since v1.24 tokens are short-lived and requested via the TokenRequest API. Long-lived tokens need a Secret of type `kubernetes.io/service-account-token`.
+
+=== 08-Storage/10-Practice-Test-Persistent-Volume-Claims
+Q: Create a PVC that binds to a PV.
+A:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: claim-log-1
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 50Mi
+```
+
+Q: The PVC stays `Pending`. Why?
+A:
+`kubectl describe pvc` shows it. Usual causes: access mode mismatch, requested size larger than any PV, `storageClassName` mismatch.
+
+Q: Mount the PVC in a Pod.
+A:
+```yaml
+volumes:
+- name: v
+  persistentVolumeClaim:
+    claimName: claim-log-1
+```
+
+Q: What happens to a PV when its PVC is deleted?
+A:
+It follows `persistentVolumeReclaimPolicy`: Retain (kept, not reusable), Delete (removed), Recycle (deprecated).
+
+=== 08-Storage/13-Practice-Test-Storage-Class
+Q: List StorageClasses and find the default.
+A:
+```bash
+kubectl get sc
+```
+The default is marked `(default)`.
+
+Q: What does `WaitForFirstConsumer` do?
+A:
+Delays provisioning and binding until a Pod using the PVC is scheduled.
+
+Q: Create a StorageClass `delayed-volume-sc` using the no-provisioner.
+A:
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: delayed-volume-sc
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+```
+
+=== 09-Networking/09-Practice-Test-Explore-Env
+Q: Find the node IP, Pod CIDR and container runtime.
+A:
+```bash
+kubectl get nodes -o wide
+ip addr
+```
+
+Q: Find the interface used for the cluster network and its MAC.
+A:
+```bash
+ip link
+ip addr show eth0
+```
+
+Q: Which ports do the control plane components listen on?
+A:
+```bash
+netstat -natulp | grep -E "kube-apiserver|etcd|kube-sched"
+```
+API server 6443, etcd 2379/2380, kubelet 10250.
+
+=== 09-Networking/13-Practice-Test-CNI-weave
+Q: Which CNI plugin is installed and where is its config?
+A:
+```bash
+ls /etc/cni/net.d/
+ls /opt/cni/bin
+```
+
+Q: Pods are stuck `ContainerCreating`. Why?
+A:
+Often no CNI is installed. `kubectl describe pod` shows "network plugin is not ready".
+
+Q: Which binary does the kubelet run to set up Pod networking?
+A:
+The one named in the CNI config, such as `weave-net` or `flannel`, found in `/opt/cni/bin`.
+
+=== 09-Networking/14-Practice-Test-Deploy-Network-Solution
+Q: Deploy Weave Net.
+A:
+```bash
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.29/net.yaml
+```
+(Use the manifest URL from the lab or Weave docs.)
+
+Q: How do you confirm it works?
+A:
+```bash
+kubectl get pods -n kube-system | grep weave
+```
+Then check that previously stuck Pods become `Running`.
+
+Q: Pods get IPs from the wrong range. How do you change it?
+A:
+Set `IPALLOC_RANGE` in the weave container env of the DaemonSet.
+
+=== 09-Networking/16-Practice-Test-Networking-weave
+Q: How many Weave agents run and where?
+A:
+One per node (DaemonSet): `kubectl get pods -n kube-system -o wide | grep weave`.
+
+Q: What is the Pod network range and the bridge name?
+A:
+```bash
+ip addr show weave
+kubectl logs -n kube-system weave-net-xxxx -c weave | grep ipalloc-range
+```
+
+Q: What is the default gateway of a Pod?
+A:
+```bash
+kubectl exec -it <pod> -- ip route
+```
+It points to the bridge IP on the Pod's node.
+
+=== 09-Networking/18-Practice-Test-Service-Networking
+Q: What is the Service IP range?
+A:
+```bash
+cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep service-cluster-ip-range
+```
+
+Q: Which proxy mode does kube-proxy use?
+A:
+```bash
+kubectl logs -n kube-system <kube-proxy-pod> | grep -i proxier
+```
+Usually `iptables`.
+
+Q: Find the iptables rules for a Service.
+A:
+```bash
+iptables -t nat -L -n | grep db-service
+```
+
+=== 09-Networking/21-Practice-Test-CoreDNS-in-Kubernetes
+Q: Where does CoreDNS run and how is it exposed?
+A:
+Deployment `coredns` in `kube-system`, exposed by Service `kube-dns`.
+
+Q: Where is the CoreDNS config?
+A:
+```bash
+kubectl -n kube-system describe cm coredns
+```
+It is the Corefile, mounted at `/etc/coredns`.
+
+Q: How does a Pod find the DNS server?
+A:
+The kubelet writes the `kube-dns` IP into the Pod's `/etc/resolv.conf`.
+
+Q: What is the FQDN of a Service?
+A:
+`<svc>.<ns>.svc.cluster.local`.
+
+=== 09-Networking/24-Practice-Test-CKA-Ingress-Net-1
+Q: Which Ingress controller is deployed and in which namespace?
+A:
+```bash
+kubectl get pods -A | grep -i ingress
+kubectl get ingress -A
+```
+
+Q: Create an Ingress that routes `/wear` to `wear-service`.
+A:
+```bash
+kubectl create ingress ingress-wear --rule="/wear=wear-service:8080" -n app-space
+```
+
+Q: An Ingress returns 404 from the controller. What is wrong?
+A:
+The backend Service name or port is wrong, or `rewrite-target` annotation is missing. `kubectl describe ingress` shows the backends.
+
+=== 09-Networking/25-Practice-Test-CKA-Ingress-Net-2
+Q: Add a second path to an existing Ingress.
+A:
+```bash
+kubectl edit ingress ingress-wear-watch -n app-space
+```
+Add another `paths` entry with `path: /watch`, `pathType: Prefix` and the backend Service.
+
+Q: Why use `nginx.ingress.kubernetes.io/rewrite-target: /`?
+A:
+Without it the backend sees `/wear`, which it may not serve.
+
+Q: Create an Ingress for a different namespace.
+A:
+An Ingress can only reference Services in its own namespace, so create it in the same namespace as the Service.
+
+=== 11-Install-Kubernetes-the-kubeadm-way/05-Practice-Test-Deploy-Kubernetes-Cluster-using-Kubeadm
+Q: Which steps are common to every node?
+A:
+Disable swap, load `br_netfilter`, set sysctl `net.ipv4.ip_forward=1`, install a container runtime, then `kubeadm`, `kubelet`, `kubectl`.
+
+Q: Initialise the control plane.
+A:
+```bash
+kubeadm init --apiserver-advertise-address=<ip> --pod-network-cidr=10.244.0.0/16
+mkdir -p ~/.kube && cp /etc/kubernetes/admin.conf ~/.kube/config
+```
+
+Q: Join a worker, and what if the join command is lost?
+A:
+Run the printed `kubeadm join ...`. To get a new one:
+```bash
+kubeadm token create --print-join-command
+```
+
+Q: Nodes are `NotReady` after join.
+A:
+Install a CNI plugin (Flannel, Calico, Weave) with `kubectl apply -f`.
+
+=== 12-Troubleshooting/05-Practice-Test-Control-Plane-Failure
+Q: A Pod stays Pending and nothing schedules. What do you check?
+A:
+```bash
+kubectl get pods -n kube-system
+```
+If `kube-scheduler` is down, read its manifest `/etc/kubernetes/manifests/kube-scheduler.yaml` for typos.
+
+Q: Scaling a Deployment does nothing.
+A:
+The controller manager is likely broken. `kubectl -n kube-system logs kube-controller-manager-controlplane` and check its manifest and kubeconfig paths.
+
+Q: Where are static Pod manifests and the logs?
+A:
+`/etc/kubernetes/manifests/`. Logs: `kubectl logs` or `crictl logs`, `journalctl -u kubelet`.
+
+=== 12-Troubleshooting/08-Practice-Test-Worker-Node-Failure
+Q: A node shows `NotReady`. First steps?
+A:
+```bash
+kubectl describe node node01
+ssh node01
+systemctl status kubelet
+journalctl -u kubelet -f
+```
+
+Q: Kubelet is stopped or crashing.
+A:
+```bash
+systemctl start kubelet && systemctl enable kubelet
+```
+If it still fails, check `/var/lib/kubelet/config.yaml` and `/etc/kubernetes/kubelet.conf` (CA path, API server address and port).
+
+Q: Which certificate path is commonly wrong?
+A:
+The `clientCAFile` in the kubelet config or the CA in kubelet.conf; fix to `/etc/kubernetes/pki/ca.crt`.
+
+=== 12-Troubleshooting/10-Practice-Test-Troubleshoot-Network
+Q: Pods in `ContainerCreating` or failing DNS. What first?
+A:
+Confirm the CNI and kube-proxy are running: `kubectl get pods -n kube-system`.
+
+Q: kube-proxy is in CrashLoopBackOff.
+A:
+```bash
+kubectl logs -n kube-system <kube-proxy-pod>
+kubectl describe ds kube-proxy -n kube-system
+```
+Check the ConfigMap `kube-proxy` and the config path in the DaemonSet command.
+
+Q: Services work by IP but not by name.
+A:
+Check CoreDNS Pods, the `kube-dns` Service and its endpoints.
+
+=== 13-Other-Topics/04-Practice-Test-Advance-Kubectl-Commands
+Q: List node names with JSONPath.
+A:
+```bash
+kubectl get nodes -o jsonpath='{.items[*].metadata.name}'
+```
+
+Q: Show node name and CPU count in custom columns.
+A:
+```bash
+kubectl get nodes -o custom-columns=NODE:.metadata.name,CPU:.status.capacity.cpu
+```
+
+Q: Sort PVs by capacity.
+A:
+```bash
+kubectl get pv --sort-by=.spec.capacity.storage
+```
+
+Q: Find the context of a user in kubeconfig by JSONPath.
+A:
+```bash
+kubectl config view --kubeconfig=/root/my-kube-config -o jsonpath='{.contexts[?(@.context.user=="aws-user")].name}'
+```
+
+=== 16-Ultimate-Mocks/02-Troubleshooting/docs/11-C1-orange-pvc-cka13-trb
+Q: The PVC is Pending. How do you find why?
+A:
+```bash
+kubectl describe pvc orange-pvc-cka13-trb      # "requested PV is too small"
+kubectl describe pv orange-pv-cka13-trb
+```
+
+Q: How do you fix it?
+A:
+A PVC request cannot be shrunk in place. Export, set the request to the PV size, and recreate:
+```bash
+kubectl get pvc orange-pvc-cka13-trb -o yaml > pvc.yaml
+kubectl replace --force -f pvc.yaml
+```
+
+=== 16-Ultimate-Mocks/02-Troubleshooting/docs/19-C1-netpol-cyan-pod-cka28-trb
+Q: What is the goal?
+A:
+Only `cyan-white-cka28-trb` may reach `cyan-pod-cka28-trb` on port 80.
+
+Q: How do you investigate?
+A:
+```bash
+kubectl -n cyan-ns-cka28-trb describe netpol cyan-np-cka28-trb
+kubectl get pods --show-labels
+kubectl get ns --show-labels
+```
+The policy's `from` selectors usually don't match the real namespace and Pod labels (the source Pods are in `default`, so use a `namespaceSelector` on `kubernetes.io/metadata.name: default` together with a `podSelector`).
+
+Q: How do you verify?
+A:
+```bash
+kubectl exec cyan-white-cka28-trb -- curl -s --max-time 3 cyan-svc-cka28-trb.cyan-ns-cka28-trb
+kubectl exec cyan-black-cka28-trb -- curl -s --max-time 3 cyan-svc-cka28-trb.cyan-ns-cka28-trb
+```
+The first works, the second times out.
+
+=== 16-Ultimate-Mocks/04-Storage/docs/10-CI-olive-pvc-cka10-str
+Q: What must be added to the template?
+A:
+A PVC `olive-pvc-cka10-str` requesting `100Mi` from `olive-pv-cka10-str`, a `busybox` sidecar mounting `python-data` at `/usr/src` with `readOnly: true`, and a NodePort Service `olive-svc-cka10-str` on `32006`.
+
+Q: How do you make the PVC bind to the right PV?
+A:
+Match `accessModes` and `storageClassName` with the PV (`kubectl get pv`) and set `volumeName: olive-pv-cka10-str`.
+
+Q: How do you keep the sidecar running?
+A:
+Give it a command, such as `command: ["sleep","3600"]`.
+
+=== 16-Ultimate-Mocks/05-Services-Networking/docs/03-C3-External-Webserver
+Q: Why can't Pods reach the external web server through the Service?
+A:
+```bash
+kubectl describe svc external-webserver-cka03-svcn
+kubectl get endpoints external-webserver-cka03-svcn
+```
+A Service without a selector needs a manually created Endpoints object, and the endpoint IP/port are wrong or missing.
+
+Q: How do you fix it?
+A:
+Create or edit an Endpoints object with the same name as the Service, pointing at the `student-node` IP and port `9999`:
+```yaml
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-webserver-cka03-svcn
+subsets:
+- addresses:
+  - ip: <student-node-ip>
+  ports:
+  - port: 9999
+```
+
+=== 16-Ultimate-Mocks/09-general/docs/01-cluster-state-questions
+Q: Why can questions like "write the Pod using most CPU to a file" be marked wrong?
+A:
+The marker checks cluster state at the end of the exam. Later deployments may change which Pod is top.
+
+Q: What is the safe approach?
+A:
+Save the command as a script, test it, and re-run it just before ending the exam so the file reflects the final state.

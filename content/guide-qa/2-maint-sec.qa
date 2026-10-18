@@ -1,0 +1,372 @@
+=== 06-Cluster-Maintenance/03-Practice-Test-OS-Upgrades
+Q: A node needs a reboot. How do you move its workloads off safely?
+A:
+```bash
+kubectl drain node01 --ignore-daemonsets
+```
+This cordons the node and evicts its Pods so they are recreated elsewhere.
+
+Q: `kubectl drain` refuses because a Pod is not managed by a controller. What are the options?
+A:
+A bare Pod would be lost forever. Either delete it yourself, or force the drain and accept the loss:
+```bash
+kubectl drain node01 --ignore-daemonsets --force
+```
+
+Q: After maintenance, how do you let Pods schedule on the node again?
+A:
+```bash
+kubectl uncordon node01
+```
+Pods that moved do not automatically move back.
+
+Q: What is the difference between `cordon` and `drain`?
+A:
+`cordon` marks the node unschedulable but leaves its Pods running. `drain` cordons and also evicts the Pods.
+
+Q: How do you check which Pods are on a node before draining?
+A:
+```bash
+kubectl get pods -A -o wide --field-selector spec.nodeName=node01
+```
+
+=== 06-Cluster-Maintenance/06-Practice-Test-Cluster-Upgrade-Process
+Q: How do you find the current and available versions?
+A:
+```bash
+kubectl get nodes                      # VERSION column
+kubeadm version
+kubeadm upgrade plan
+```
+
+Q: Which order do you upgrade a kubeadm cluster?
+A:
+Control plane first, then workers, one node at a time. Never skip a minor version (1.34 to 1.35, not 1.33 to 1.35).
+
+Q: Give the steps to upgrade the control plane node to v1.35.0.
+A:
+```bash
+apt-get update && apt-get install -y kubeadm=1.35.0-1.1
+kubeadm upgrade apply v1.35.0
+apt-get install -y kubelet=1.35.0-1.1 kubectl=1.35.0-1.1
+systemctl daemon-reload && systemctl restart kubelet
+```
+(Package version strings depend on the repository.)
+
+Q: Give the steps to upgrade a worker node.
+A:
+From the control plane: `kubectl drain node01 --ignore-daemonsets`. On the worker:
+```bash
+apt-get install -y kubeadm=1.35.0-1.1
+kubeadm upgrade node
+apt-get install -y kubelet=1.35.0-1.1
+systemctl daemon-reload && systemctl restart kubelet
+```
+Back on the control plane: `kubectl uncordon node01`.
+
+Q: Why does `kubectl get nodes` still show the old version after `kubeadm upgrade apply`?
+A:
+`get nodes` shows the kubelet version. Upgrade and restart the kubelet to change it.
+
+=== 07-Security/10-Practice-Test-View-Certificate-Details
+Q: Where are the Kubernetes certificates on a kubeadm control plane node?
+A:
+```bash
+ls /etc/kubernetes/pki
+```
+The API server's manifest `/etc/kubernetes/manifests/kube-apiserver.yaml` lists every path it uses.
+
+Q: What is the Common Name (CN) and the issuer of the API server certificate?
+A:
+```bash
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep -E "Subject:|Issuer:"
+```
+Issuer is usually `CN=kubernetes` (the cluster CA).
+
+Q: How do you list the Subject Alternative Names (SANs) of the API server cert?
+A:
+```bash
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep -A1 "Alternative Name"
+```
+
+Q: When does the API server certificate expire?
+A:
+```bash
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -enddate
+kubeadm certs check-expiration
+```
+
+Q: The API server will not start and the log shows an x509 error. What do you do?
+A:
+Find the failing component's cert path in its manifest, check it with `openssl x509 -text -noout`, and look for a wrong CN/SAN, wrong issuer or expired date. With a container runtime: `crictl ps -a | grep kube-apiserver` then `crictl logs <id>`.
+
+=== 07-Security/12-Practice-Test-Certificates-API
+Q: A new user `akshay` sends a CSR. How do you create the CertificateSigningRequest object?
+A:
+```yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: akshay
+spec:
+  request: <base64 of the .csr file, no newlines>
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - client auth
+```
+```bash
+cat akshay.csr | base64 -w0
+```
+
+Q: How do you list and approve the request?
+A:
+```bash
+kubectl get csr
+kubectl certificate approve akshay
+```
+
+Q: Another CSR looks suspicious. How do you reject it?
+A:
+```bash
+kubectl certificate deny agent-smith
+kubectl delete csr agent-smith
+```
+
+Q: How do you view the request details and extract the signed certificate?
+A:
+```bash
+kubectl get csr akshay -o yaml
+kubectl get csr akshay -o jsonpath='{.status.certificate}' | base64 -d > akshay.crt
+```
+
+Q: Which component actually signs the certificates?
+A:
+The kube-controller-manager, using the cluster CA key and cert passed with `--cluster-signing-cert-file` and `--cluster-signing-key-file`.
+
+=== 07-Security/14-Practice-Test-KubeConfig
+Q: Where is the default kubeconfig and how do you view it?
+A:
+```bash
+cat ~/.kube/config
+kubectl config view
+```
+
+Q: How many clusters, users and contexts are defined, and what is the current context?
+A:
+```bash
+kubectl config get-contexts
+kubectl config current-context
+kubectl config get-clusters
+kubectl config get-users
+```
+
+Q: Switch to the context `research`.
+A:
+```bash
+kubectl config use-context research
+```
+
+Q: Use a different kubeconfig file just for one command.
+A:
+```bash
+kubectl get pods --kubeconfig /root/my-kube-config
+export KUBECONFIG=/root/my-kube-config     # for the whole shell
+```
+
+Q: A kubeconfig fails with `Unable to connect` or `certificate signed by unknown authority`. What do you check?
+A:
+The cluster `server:` address and port, and the `certificate-authority` path or `certificate-authority-data` in the cluster block. A wrong CA path in the file is a common lab fault.
+
+=== 07-Security/18-Practice-Test-RBAC
+Q: Which authorization modes does the API server use?
+A:
+```bash
+kubectl describe pod kube-apiserver-controlplane -n kube-system | grep authorization-mode
+```
+Typically `Node,RBAC`.
+
+Q: How do you list Roles and RoleBindings, and see what a Role allows?
+A:
+```bash
+kubectl get roles,rolebindings -A
+kubectl describe role developer -n blue
+kubectl describe rolebinding dev-user-binding -n blue
+```
+
+Q: Create a Role `developer` allowing a user to list, create and delete Pods in `default`, and bind it to `dev-user`.
+A:
+```bash
+kubectl create role developer --verb=list,create,delete --resource=pods
+kubectl create rolebinding dev-user-binding --role=developer --user=dev-user
+```
+
+Q: How do you test whether `dev-user` can do something?
+A:
+```bash
+kubectl auth can-i create pods --as dev-user
+kubectl auth can-i delete deployments --as dev-user -n blue
+```
+
+Q: `dev-user` gets `forbidden` when getting a Pod. How do you fix it?
+A:
+Add the missing verb or resource to the Role (`kubectl edit role developer -n blue`). The Role must be in the same namespace as the Pod, and `resourceNames` must match if set.
+
+=== 07-Security/20-Practice-Test-Cluster-Roles
+Q: Which ClusterRoles exist and how many are there?
+A:
+```bash
+kubectl get clusterroles --no-headers | wc -l
+kubectl get clusterrolebindings --no-headers | wc -l
+```
+
+Q: Create a ClusterRole that lets `michelle` list and get nodes, and bind it.
+A:
+```bash
+kubectl create clusterrole node-admin --verb=get,list,watch --resource=nodes
+kubectl create clusterrolebinding michelle-binding --clusterrole=node-admin --user=michelle
+```
+
+Q: Extend the same user to storage: allow list/get/create/delete on PersistentVolumes and PVCs.
+A:
+```bash
+kubectl create clusterrole storage-admin --verb=list,get,create,delete --resource=persistentvolumes,storageclasses
+kubectl create clusterrolebinding michelle-storage --clusterrole=storage-admin --user=michelle
+```
+(PVCs are namespaced, so they need a Role/RoleBinding, or a ClusterRole bound with a RoleBinding.)
+
+Q: Which resources are cluster-scoped?
+A:
+```bash
+kubectl api-resources --namespaced=false
+```
+Nodes, PersistentVolumes, StorageClasses, Namespaces and ClusterRoles are cluster-scoped.
+
+Q: What is the difference between a RoleBinding and a ClusterRoleBinding that reference the same ClusterRole?
+A:
+A RoleBinding grants the ClusterRole's permissions only in its own namespace. A ClusterRoleBinding grants them cluster-wide.
+
+=== 07-Security/24-Practice-Test-Image-Security
+Q: What image does a Pod use and from which registry?
+A:
+```bash
+kubectl describe pod web | grep Image
+```
+An image name like `myregistry.io/app/web:1.0` has the registry first. Without a registry it defaults to Docker Hub (`docker.io`).
+
+Q: How do you create a Secret for a private registry?
+A:
+```bash
+kubectl create secret docker-registry regcred \
+  --docker-server=private-registry.io --docker-username=registry-user \
+  --docker-password=registry-password --docker-email=registry@org.com
+```
+
+Q: How do you make a Pod pull from that registry?
+A:
+```yaml
+spec:
+  imagePullSecrets:
+  - name: regcred
+  containers:
+  - name: app
+    image: private-registry.io/apps/internal-app
+```
+
+Q: A Pod is in `ImagePullBackOff`. How do you troubleshoot?
+A:
+```bash
+kubectl describe pod <pod>            # Events show the exact error
+```
+Common causes: typo in image or tag, private registry without `imagePullSecrets`, wrong credentials, registry unreachable.
+
+Q: Where does `imagePullSecrets` go if every Pod in a namespace needs it?
+A:
+Attach it to the ServiceAccount: `kubectl patch serviceaccount default -p '{"imagePullSecrets":[{"name":"regcred"}]}'`.
+
+=== 07-Security/26-Practice-Test-Security-Context
+Q: What user does a container run as?
+A:
+```bash
+kubectl exec <pod> -- whoami
+kubectl exec <pod> -- id
+```
+
+Q: Run the Pod `ubuntu-sleeper` as user ID 1010.
+A:
+```yaml
+spec:
+  securityContext:
+    runAsUser: 1010
+  containers:
+  - name: ubuntu
+    image: ubuntu
+    command: ["sleep","4800"]
+```
+A Pod-level `securityContext` applies to all containers.
+
+Q: Add the Linux capabilities `SYS_TIME` and `NET_ADMIN` to a container.
+A:
+Capabilities are set per container, not on the Pod:
+```yaml
+containers:
+- name: ubuntu
+  image: ubuntu
+  securityContext:
+    capabilities:
+      add: ["SYS_TIME","NET_ADMIN"]
+```
+
+Q: A container-level and a Pod-level `runAsUser` disagree. Which wins?
+A:
+The container-level setting overrides the Pod-level one.
+
+Q: How do you stop a container running as root or escalating privileges?
+A:
+```yaml
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+```
+
+=== 07-Security/28-Practice-Test-Network-Policies
+Q: How do you list Network Policies and see which Pods one applies to?
+A:
+```bash
+kubectl get netpol
+kubectl describe netpol payroll-policy
+```
+`podSelector` in the policy defines the target Pods.
+
+Q: Allow only the Pod labelled `name=internal` to reach `payroll` on port 8080.
+A:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-policy
+spec:
+  podSelector:
+    matchLabels:
+      name: payroll
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: internal
+    ports:
+    - port: 8080
+```
+
+Q: Allow egress from `internal` to `mysql` on 3306 and `payroll` on 8080.
+A:
+Add `Egress` to `policyTypes` and an `egress:` block with two `to:` entries and their `ports`. Remember DNS: allow UDP/TCP 53 egress too, or name lookups will fail.
+
+Q: What is the difference between a list of `from` entries and two selectors in one entry?
+A:
+Separate list items are ORed. Selectors in one item (for example `namespaceSelector` plus `podSelector`) are ANDed.
+
+Q: A policy exists but has no effect. Why?
+A:
+The CNI plugin must support Network Policies (Calico, Cilium, Weave do; Flannel alone does not). Also check the policy's namespace and labels.

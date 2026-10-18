@@ -79,6 +79,12 @@ function walk(dir, rel = '') {
 }
 walk(DOCS);
 
+// Lab pages are question-and-answer pages, not hands-on labs: name them accordingly.
+function labTitle(t, kind, top) {
+  if (kind !== 'lab') return t;
+  if (top === '16-Ultimate-Mocks') return 'Mock Q&A: ' + t;
+  return 'Lab Q&A: ' + t.replace(/^Lab:\s*/i, '').replace(/^Practice Tests?\s*/i, '');
+}
 const sections = new Map();
 for (const rel of lessons) {
   const parts = rel.split('/');
@@ -103,7 +109,7 @@ for (const rel of lessons) {
   if (!sections.has(key)) sections.set(key, { id: key, title: sectionTitle, lessons: [] });
   sections.get(key).lessons.push({
     id: rel.replace(/\.md$/, ''),
-    title: pretty(name),
+    title: labTitle(pretty(name), kind, top),
     domain,
     kind,
     minutes: LONGER[name.replace(/^\d+[.-]/, '').replace(/\.md$/, '')] || MINUTES[kind],

@@ -1,0 +1,410 @@
+=== 03-Scheduling/13-Practice-Test-Resource-Limits
+Q: A Pod named `rabbit` is stuck `Pending`. How do you find out how much CPU it requests, and why it cannot be scheduled?
+A:
+```bash
+kubectl describe pod rabbit
+```
+Look at `Requests:` under the container, then at `Events:`. A message such as `0/2 nodes are available: Insufficient cpu` means no node has that much unreserved CPU. Lower the request or free capacity; the scheduler compares requests with each node's allocatable resources, not actual usage.
+
+Q: A Pod shows status `OOMKilled`. What does it mean and how do you find the memory limit?
+A:
+The container used more memory than its limit and the kernel killed it. Read the limit and the last state:
+```bash
+kubectl describe pod elephant        # Last State: Terminated, Reason: OOMKilled
+kubectl get pod elephant -o jsonpath='{.spec.containers[*].resources}'
+```
+
+Q: The `elephant` Pod has a 10Mi memory limit and keeps being OOMKilled. How do you raise it to 20Mi?
+A:
+A running Pod's resources cannot be edited in place, so recreate it:
+```bash
+kubectl get pod elephant -o yaml > elephant.yaml
+# edit resources.limits.memory: 20Mi
+kubectl delete pod elephant
+kubectl apply -f elephant.yaml
+```
+(`kubectl replace --force -f elephant.yaml` does the delete and create in one step.)
+
+Q: What happens if a container exceeds its CPU limit, compared with its memory limit?
+A:
+CPU is compressible: the container is throttled but keeps running. Memory is not: exceeding the limit gets the container OOMKilled and restarted.
+
+Q: What is the difference between a request and a limit?
+A:
+A **request** is what the scheduler reserves for the Pod when picking a node. A **limit** is the maximum the container may use at runtime. A Pod with no requests or limits is `BestEffort` and is the first to be evicted under pressure.
+
+=== 03-Scheduling/15-Practice-Test-DaemonSets
+Q: How many DaemonSets exist in the cluster, across all namespaces?
+A:
+```bash
+kubectl get daemonsets -A
+```
+Count the rows. DaemonSets are namespaced, so `-A` matters.
+
+Q: Which Pods does the DaemonSet `kube-proxy` run, and on how many nodes?
+A:
+```bash
+kubectl get ds kube-proxy -n kube-system
+kubectl get pods -n kube-system -o wide | grep kube-proxy
+```
+`DESIRED` equals the number of schedulable nodes; the `-o wide` output shows one Pod per node.
+
+Q: Create a DaemonSet named `elasticsearch` with image `registry.k8s.io/fluentd-elasticsearch:1.20` in `kube-system`. What is the quickest way?
+A:
+There is no `kubectl create daemonset`, so generate a Deployment and edit it:
+```bash
+kubectl create deployment elasticsearch --image=registry.k8s.io/fluentd-elasticsearch:1.20 -n kube-system --dry-run=client -o yaml > ds.yaml
+# change kind: Deployment to DaemonSet, delete replicas, strategy and status
+kubectl apply -f ds.yaml
+```
+
+Q: A DaemonSet's Pods are not scheduled on the control-plane node. Why, and how do you fix it?
+A:
+The control-plane node is tainted (`node-role.kubernetes.io/control-plane:NoSchedule`). Add a toleration to the DaemonSet's Pod template:
+```yaml
+tolerations:
+- key: node-role.kubernetes.io/control-plane
+  operator: Exists
+  effect: NoSchedule
+```
+
+Q: How does a DaemonSet place one Pod per node without the scheduler picking the node?
+A:
+The DaemonSet controller creates a Pod for each eligible node and sets node affinity to that node, and the default scheduler binds it. New nodes get a Pod automatically; removed nodes lose theirs.
+
+=== 03-Scheduling/17-Practice-Test-StaticPods
+Q: How many static Pods exist in the cluster?
+A:
+Static Pods are mirrored into the API with the node name appended to their name (for example `etcd-controlplane`).
+```bash
+kubectl get pods -A -o wide
+```
+Pods whose names end with a node name, or whose `ownerReferences` kind is `Node`, are static.
+
+Q: Which directory holds the static Pod manifests on a node?
+A:
+Check the kubelet configuration for `staticPodPath`:
+```bash
+ps aux | grep kubelet                        # find --config=/var/lib/kubelet/config.yaml
+grep staticPodPath /var/lib/kubelet/config.yaml
+```
+On a kubeadm cluster it is `/etc/kubernetes/manifests`.
+
+Q: Create a static Pod named `static-busybox` with image `busybox` that sleeps for 1000 seconds.
+A:
+```bash
+kubectl run static-busybox --image=busybox --dry-run=client -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml
+```
+The kubelet notices the file and starts the Pod. No `kubectl apply` is needed.
+
+Q: How do you delete a static Pod?
+A:
+`kubectl delete pod` only removes the mirror object and the kubelet recreates it. Delete or move the manifest file on that node:
+```bash
+rm /etc/kubernetes/manifests/static-busybox.yaml
+```
+
+Q: Why are the control-plane components static Pods in a kubeadm cluster?
+A:
+The kubelet can run them before any API server exists. A broken component is repaired by editing its manifest in `/etc/kubernetes/manifests`.
+
+=== 03-Scheduling/19-Practice-Test-Multiple-Schedulers
+Q: How do you see which scheduler places a Pod?
+A:
+```bash
+kubectl get pod <name> -o jsonpath='{.spec.schedulerName}'
+kubectl get events -o wide | grep Scheduled
+```
+The `Scheduled` event names the component, for example `default-scheduler`.
+
+Q: How is a second scheduler deployed so it runs alongside the default one?
+A:
+As a Pod (often a static Pod or Deployment) running `kube-scheduler` with its own config, a distinct `schedulerName` profile and its own leader-election lock name:
+```yaml
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: my-scheduler
+leaderElection:
+  leaderElect: false
+```
+
+Q: How do you make a Pod use the custom scheduler?
+A:
+```yaml
+spec:
+  schedulerName: my-scheduler
+```
+If the scheduler is not running, the Pod stays `Pending`.
+
+Q: A Pod using `my-scheduler` is `Pending`. How do you troubleshoot?
+A:
+```bash
+kubectl describe pod <name>                  # no Scheduled event
+kubectl get pods -n kube-system | grep scheduler
+kubectl logs -n kube-system my-scheduler
+```
+Typical causes: the scheduler Pod is not running, `schedulerName` does not match the profile, or RBAC for the scheduler is missing.
+
+Q: Why must the second scheduler set a different leader-election name, or disable leader election?
+A:
+Schedulers contend for a lock to avoid two instances scheduling the same Pods. Two different schedulers sharing one lock name would block each other.
+
+=== 04-Logging-and-Monitoring/06-Practice-Test-Managing-Application-Logs
+Q: How do you read the logs of a Pod named `webapp`?
+A:
+```bash
+kubectl logs webapp
+kubectl logs -f webapp                       # follow
+kubectl logs webapp --tail=20 --since=10m
+```
+
+Q: A Pod has two containers. Why does `kubectl logs` fail and how do you fix it?
+A:
+You must name the container:
+```bash
+kubectl logs webapp -c simple-webapp
+kubectl logs webapp --all-containers
+```
+
+Q: A container keeps restarting. How do you read the logs of its previous run?
+A:
+```bash
+kubectl logs webapp --previous
+```
+
+Q: How do you search a Pod's logs for failed logins?
+A:
+```bash
+kubectl logs webapp | grep -i "failed"
+```
+
+Q: How do you see logs of a Deployment's Pods together?
+A:
+```bash
+kubectl logs -l app=webapp --prefix --tail=20
+```
+`kubectl logs deployment/webapp` shows only one Pod, so use a label selector to cover them all.
+
+=== 05-Application-Lifecycle-Management/03-Practice-Test-RollingUpdates-Rollback
+Q: How do you check which update strategy a Deployment uses?
+A:
+```bash
+kubectl describe deployment frontend | grep -i strategy
+```
+Default is `RollingUpdate` with `maxUnavailable: 25%` and `maxSurge: 25%`.
+
+Q: Update the image of Deployment `frontend` to `kodekloud/webapp-color:v2` and watch the rollout.
+A:
+```bash
+kubectl set image deployment/frontend simple-webapp=kodekloud/webapp-color:v2
+kubectl rollout status deployment/frontend
+```
+The container name (`simple-webapp` here) comes from `kubectl get deploy frontend -o yaml`.
+
+Q: The new version is broken (Pods stuck `ErrImagePull`). How do you roll back?
+A:
+```bash
+kubectl rollout history deployment/frontend
+kubectl rollout undo deployment/frontend
+kubectl rollout undo deployment/frontend --to-revision=1
+```
+
+Q: How do you change the strategy to `Recreate`?
+A:
+```bash
+kubectl edit deployment frontend
+```
+Set `spec.strategy.type: Recreate` and remove the `rollingUpdate` block. All old Pods stop first, which causes downtime.
+
+Q: How do you pause a rollout and resume it later?
+A:
+```bash
+kubectl rollout pause deployment/frontend
+kubectl rollout resume deployment/frontend
+```
+
+=== 05-Application-Lifecycle-Management/06-Practice-Test-Commands-and-Arguments
+Q: What does the `ENTRYPOINT` and `CMD` in a Dockerfile map to in a Pod spec?
+A:
+`ENTRYPOINT` maps to `command`; `CMD` maps to `args`. Setting `command` overrides the image's ENTRYPOINT (and drops CMD); setting only `args` overrides CMD.
+
+Q: Create a Pod `ubuntu-sleeper` with image `ubuntu` that runs `sleep 5000`.
+A:
+```bash
+kubectl run ubuntu-sleeper --image=ubuntu --command -- sleep 5000
+```
+Equivalent YAML:
+```yaml
+command: ["sleep"]
+args: ["5000"]
+```
+
+Q: The image's entrypoint is `python app.py` and CMD is `--color red`. How do you start it with `--color green`?
+A:
+```yaml
+args: ["--color", "green"]
+```
+Only `args` is set, so the ENTRYPOINT is kept and CMD is replaced.
+
+Q: Why does a Pod with `command: ["sleep", 5000]` fail?
+A:
+Every command argument must be a string. `5000` needs quotes: `"5000"`. The error is `cannot unmarshal number into Go struct field`.
+
+Q: A Pod's args need an environment variable. How do you reference it?
+A:
+```yaml
+env:
+- name: DELAY
+  value: "10"
+args: ["$(DELAY)"]
+```
+
+=== 05-Application-Lifecycle-Management/09-Practice-Test-Env-Variables
+Q: How do you read a Pod's environment variables?
+A:
+```bash
+kubectl exec <pod> -- env
+kubectl get pod <pod> -o jsonpath='{.spec.containers[0].env}'
+```
+
+Q: Set `APP_COLOR=pink` on an existing Pod.
+A:
+Environment is immutable on a running Pod, so recreate it:
+```bash
+kubectl get pod webapp -o yaml > webapp.yaml
+# add under the container:  env: [{name: APP_COLOR, value: pink}]
+kubectl replace --force -f webapp.yaml
+```
+
+Q: Create a ConfigMap `webapp-config-map` with `APP_COLOR=darkblue` and use it in a Pod.
+A:
+```bash
+kubectl create configmap webapp-config-map --from-literal=APP_COLOR=darkblue
+```
+```yaml
+envFrom:
+- configMapRef:
+    name: webapp-config-map
+```
+
+Q: How do you inject one single key from a ConfigMap?
+A:
+```yaml
+env:
+- name: APP_COLOR
+  valueFrom:
+    configMapKeyRef:
+      name: webapp-config-map
+      key: APP_COLOR
+```
+
+Q: A Pod is `CreateContainerConfigError`. What is the likely cause?
+A:
+It references a ConfigMap or key that does not exist. Run `kubectl describe pod` and read the event, e.g. `configmap "x" not found`, then create it or fix the name.
+
+=== 05-Application-Lifecycle-Management/11.Practice-Test-Secrets
+Q: How do you create a Secret `db-secret` with `DB_Host=sql01`, `DB_User=root` and `DB_Password=password123`?
+A:
+```bash
+kubectl create secret generic db-secret --from-literal=DB_Host=sql01 --from-literal=DB_User=root --from-literal=DB_Password=password123
+```
+
+Q: How do you read a value stored in a Secret?
+A:
+Values are base64 encoded, not encrypted:
+```bash
+kubectl get secret db-secret -o jsonpath='{.data.DB_Password}' | base64 -d
+```
+
+Q: Inject the whole Secret as environment variables.
+A:
+```yaml
+envFrom:
+- secretRef:
+    name: db-secret
+```
+
+Q: Mount a Secret as files.
+A:
+```yaml
+volumes:
+- name: sec
+  secret:
+    secretName: db-secret
+containers:
+- name: app
+  volumeMounts:
+  - name: sec
+    mountPath: /etc/secret
+```
+Each key becomes a file in `/etc/secret`.
+
+Q: Why is a Secret not secure by default?
+A:
+It is only base64 encoded and stored in etcd unencrypted unless encryption at rest is enabled. Use RBAC to limit who can read Secrets and enable an `EncryptionConfiguration`.
+
+=== 05-Application-Lifecycle-Management/13-Practice-Test-Multi-Container-Pods
+Q: How many containers does the Pod `lemon` have, and what are their names?
+A:
+```bash
+kubectl get pod lemon                                  # READY x/y
+kubectl get pod lemon -o jsonpath='{.spec.containers[*].name}'
+```
+
+Q: Create a Pod `yellow` with two containers: `lemon` (image `busybox`, sleep 1000) and `gold` (image `redis`).
+A:
+```bash
+kubectl run yellow --image=busybox --dry-run=client -o yaml --command -- sleep 1000 > yellow.yaml
+```
+Edit the file: rename the container to `lemon` and add a second one:
+```yaml
+- name: gold
+  image: redis
+```
+
+Q: How do you view the logs of one container in a multi-container Pod?
+A:
+```bash
+kubectl logs yellow -c gold
+```
+
+Q: In a sidecar logging pattern, how does the app container share logs with the sidecar?
+A:
+Both mount the same `emptyDir` volume. The app writes log files into it and the sidecar (for example Fluentd) reads them.
+
+Q: How do you open a shell in a specific container?
+A:
+```bash
+kubectl exec -it yellow -c lemon -- sh
+```
+
+=== 05-Application-Lifecycle-Management/16-Practice-Test-Init-Containers
+Q: A Pod shows `Init:0/1`. What does it mean?
+A:
+Init containers run one after another before the app containers start. `0/1` means the first of one init container has not completed. Read its logs:
+```bash
+kubectl logs <pod> -c <init-container-name>
+kubectl describe pod <pod>
+```
+
+Q: Add an init container `init-myservice` (busybox) that waits for a Service named `myservice` to resolve.
+A:
+```yaml
+initContainers:
+- name: init-myservice
+  image: busybox
+  command: ['sh','-c','until nslookup myservice; do echo waiting; sleep 2; done']
+```
+
+Q: A Pod is stuck in `Init:CrashLoopBackOff`. What do you check?
+A:
+The init container's command probably exits non-zero. Check `kubectl logs <pod> -c <init>` and `describe pod` for the exit code. The Pod does not start until every init container succeeds.
+
+Q: How do init containers differ from sidecars?
+A:
+Init containers run to completion, in order, before app containers. Sidecars run alongside the app for the Pod's whole life.
+
+Q: Do init containers share volumes with the main container?
+A:
+Yes. Mount the same volume in both to hand data over, for example an init container clones a git repo into an `emptyDir` that the app serves.
