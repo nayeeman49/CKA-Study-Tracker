@@ -224,7 +224,7 @@ function renderDashboard() {
     <div class="hero-row">
     <div class="card timer-hero"><h2 style="margin-top:0">⏱ Study timer</h2><div data-timer-root>${timerBody()}</div></div>
     <div class="stats2">
-      <div class="card stat"><div class="big">🔥 ${st.streak}</div><div class="lbl">day streak · best ${st.longest}</div><button class="btn ghost sm" data-reset="streak" style="margin-top:.5rem">↺ Reset streak</button></div>
+      <div class="card stat"><div class="big"><span class="fl">🔥</span> ${st.streak}</div><div class="lbl">day streak · best ${st.longest}</div><button class="btn ghost sm" data-reset="streak" style="margin-top:.5rem">↺ Reset streak</button></div>
       <div class="card stat"><div class="big">${st.readiness}%</div><div class="lbl">exam-weighted readiness</div></div>
       <div class="card stat"><div class="big">${st.totalDone}<span class="muted" style="font-size:1rem">/${st.totalItems}</span></div><div class="lbl">lessons &amp; labs done</div></div>
       <div class="card stat"><div class="big">${fmtMin(st.weekMinutes)}</div><div class="lbl">studied in the last 7 days</div></div>

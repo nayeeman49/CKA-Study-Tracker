@@ -595,7 +595,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   etag: true, index: false,
   setHeaders: (res, file) => {
     if (res.req.query.v) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    else res.setHeader('Cache-Control', /\.(jpe?g|png|svg|webp)$/.test(file) ? 'public, max-age=86400' : 'no-cache');
+    else res.setHeader('Cache-Control', /\.(jpe?g|png|svg|webp|woff2)$/.test(file) ? 'public, max-age=86400' : 'no-cache');
   },
 }));
 function indexHtml() {
