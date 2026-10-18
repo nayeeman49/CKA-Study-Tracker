@@ -703,6 +703,10 @@ function renderResources() {
   $app.innerHTML = shell('resources', `
     <h1>Resources</h1>
     <p class="muted">Video courses, practice environments and official documentation. Courses are not affiliated with this app; check the current price and syllabus version before you buy.</p>
+    <div class="card exam-book"><div class="eb-ic">🎓</div><div class="eb-tx"><h2 style="margin:0 0 .3rem">Book the CKA exam</h2>
+      <p style="margin:0 0 .6rem">Register and pay for the exam on the official Linux Foundation page.</p>
+      <div class="eb-tip">💡 <span><b>Tip:</b> the exam is a big expense, so before you buy, search online for current discount vouchers and coupon codes. The Linux Foundation runs promotions regularly, and a code can save a lot of money.</span></div>
+      <a class="btn" href="https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/" target="_blank" rel="noopener noreferrer">Book the CKA exam ↗</a></div></div>
     ${r.videos.map(g => `<h2 style="margin-top:1.4rem">${esc(g.group)}</h2><div class="grid g2">${g.items.map(v => linkCard(v, true)).join('')}</div>`).join('')}
     <h2 style="margin-top:1.4rem">Practice and reference</h2>
     <div class="grid g2">${r.practice.map(p => `${linkCard({ title: p.title, url: p.url, note: p.note })}`).join('')}</div>
