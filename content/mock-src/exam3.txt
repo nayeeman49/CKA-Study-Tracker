@@ -1,0 +1,508 @@
+### Q | 5 | Cluster Architecture | cluster1
+A Helm release `api` (chart `bitnami/nginx`) is installed in namespace `rel`. Show its revision history, then roll it back to revision 1. Save the output of `helm history api -n rel` after the rollback to `/opt/answers/helm-history.txt`, and uninstall the release `old-api` from the same namespace while keeping its history.
+--- solution ---
+```bash
+helm history api -n rel
+helm rollback api 1 -n rel
+helm history api -n rel > /opt/answers/helm-history.txt
+helm uninstall old-api -n rel --keep-history
+helm list -n rel --all
+```
+A rollback creates a **new** revision (for example revision 4 that copies revision 1), so history gets longer. `--keep-history` leaves the uninstalled release visible with `helm list --uninstalled` or `--all`.
+
+### Q | 6 | Cluster Architecture | cluster1
+Create a kubeconfig file `/opt/users/maya.kubeconfig` for the user `maya` that connects to the current cluster (use the cluster name and server from the current kubeconfig) with the client certificate `/opt/users/maya.crt` and key `/opt/users/maya.key`, with a context named `maya@cluster1` set as current. Create the file without changing `~/.kube/config`.
+--- solution ---
+```bash
+export KUBECONFIG=/opt/users/maya.kubeconfig
+SERVER=$(kubectl --kubeconfig ~/.kube/config config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+kubectl config set-cluster cluster1 --server=$SERVER --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+kubectl config set-credentials maya --client-certificate=/opt/users/maya.crt --client-key=/opt/users/maya.key --embed-certs=true
+kubectl config set-context maya@cluster1 --cluster=cluster1 --user=maya
+kubectl config use-context maya@cluster1
+unset KUBECONFIG
+kubectl --kubeconfig /opt/users/maya.kubeconfig config view
+kubectl --kubeconfig /opt/users/maya.kubeconfig config current-context
+```
+Setting `KUBECONFIG` for the shell makes `kubectl config` write to that file instead of the default. Unset it afterwards. Use `--embed-certs=true` so the file is self-contained.
+
+### Q | 6 | Cluster Architecture | cluster2
+Worker node `w6` runs kubelet v1.34.x. The control plane is already v1.35.0. Upgrade `w6` to v1.35.0 with kubeadm. Workloads must be moved off the node first, and the node must be schedulable again at the end.
+--- solution ---
+```bash
+kubectl config use-context cluster2
+kubectl drain w6 --ignore-daemonsets --delete-emptydir-data
+ssh w6
+sudo -i
+apt-get update
+apt-get install -y kubeadm=1.35.0-1.1
+kubeadm upgrade node
+apt-get install -y kubelet=1.35.0-1.1 kubectl=1.35.0-1.1
+systemctl daemon-reload
+systemctl restart kubelet
+exit; exit
+kubectl uncordon w6
+kubectl get nodes
+```
+Workers use `kubeadm upgrade node`, never `upgrade apply`. Drain and uncordon run from the control plane (or where `kubectl` works), not on the worker.
+
+### Q | 5 | Cluster Architecture | cluster3
+Nodes in `cluster3` are `NotReady` because no CNI plugin is installed. Install Calico using the manifest `/opt/cni/calico.yaml` and make sure it uses the Pod CIDR `192.168.0.0/16`. Verify that all nodes become `Ready` and a test Pod gets an IP from that range.
+--- solution ---
+```bash
+kubectl config use-context cluster3
+kubectl cluster-info dump | grep -m1 cluster-cidr        # Pod CIDR chosen at kubeadm init
+grep -n -A1 CALICO_IPV4POOL_CIDR /opt/cni/calico.yaml
+vi /opt/cni/calico.yaml       # uncomment and set value: "192.168.0.0/16"
+kubectl apply -f /opt/cni/calico.yaml
+kubectl -n kube-system get pods -w
+kubectl get nodes
+kubectl run cni-test --image=nginx
+kubectl get pod cni-test -o wide        # IP in 192.168.x.x
+```
+The CNI's pool must match the `--pod-network-cidr` used in `kubeadm init`. Nodes only turn `Ready` once the CNI Pods run on them and `/etc/cni/net.d` has a config.
+
+### Q | 3 | Cluster Architecture | cluster1
+Create a static Pod `static-web` using image `nginx:alpine` on the control plane node `controlplane`. It must be recreated automatically if deleted. Show its name as it appears in the API.
+--- solution ---
+```bash
+ssh controlplane
+sudo -i
+grep staticPodPath /var/lib/kubelet/config.yaml        # usually /etc/kubernetes/manifests
+cat > /etc/kubernetes/manifests/static-web.yaml <<'YAML'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: static-web
+spec:
+  containers:
+  - name: web
+    image: nginx:alpine
+YAML
+exit; exit
+kubectl get pods | grep static-web      # static-web-controlplane
+```
+The API shows a mirror Pod named `<name>-<node>`. Delete it with `kubectl delete` and it comes back; remove the manifest file to remove the Pod for good.
+
+### Q | 5 | Workloads & Scheduling | cluster1
+Create a CronJob `cleanup` in namespace `jobs` that runs every day at 03:30 using image `busybox` and the command `echo cleaning`. Keep the last 2 successful and 1 failed job, do not allow overlapping runs and set `activeDeadlineSeconds` to 120. Trigger a manual run named `cleanup-now`.
+--- solution ---
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup
+  namespace: jobs
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: c
+            image: busybox
+            command: ["sh","-c","echo cleaning"]
+```
+```bash
+kubectl apply -f cj.yaml
+kubectl -n jobs create job cleanup-now --from=cronjob/cleanup
+kubectl -n jobs logs job/cleanup-now
+```
+A Job Pod must have `restartPolicy` of `OnFailure` or `Never`. `activeDeadlineSeconds` sits under the **job** spec.
+
+### Q | 4 | Workloads & Scheduling | cluster1
+Create a Job `batch-calc` in namespace `jobs` (image `perl:5`, command `perl -Mbignum=bpi -wle 'print bpi(500)'`) that runs 6 completions with 2 Pods in parallel, retries at most 3 times and deletes itself 5 minutes after finishing.
+--- solution ---
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-calc
+  namespace: jobs
+spec:
+  completions: 6
+  parallelism: 2
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: calc
+        image: perl:5
+        command: ["perl","-Mbignum=bpi","-wle","print bpi(500)"]
+```
+```bash
+kubectl apply -f job.yaml
+kubectl -n jobs get job batch-calc -w
+kubectl -n jobs get pods -l job-name=batch-calc
+```
+`kubectl create job batch-calc --image=perl:5 --dry-run=client -o yaml -- perl ...` generates a base file, then add the fields above.
+
+### Q | 6 | Workloads & Scheduling | cluster1
+Create a Deployment `ha-web` (image `nginx`, 3 replicas) in namespace `ha` so that no two replicas run on the same node. Pods carry the label `app=ha-web`. Use a **required** Pod anti-affinity on the node level. If there are fewer nodes than replicas, the remaining Pods staying `Pending` is acceptable.
+--- solution ---
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ha-web
+  namespace: ha
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ha-web
+  template:
+    metadata:
+      labels:
+        app: ha-web
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: ha-web
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: nginx
+        image: nginx
+```
+```bash
+kubectl apply -f ha.yaml
+kubectl -n ha get pods -o wide
+```
+`topologyKey: kubernetes.io/hostname` makes each node its own domain. The newer alternative is `topologySpreadConstraints` with `maxSkew: 1`, which allows doubling up when needed.
+
+### Q | 5 | Storage | cluster1
+Create a StorageClass `ssd-delayed` with provisioner `rancher.io/local-path`, reclaim policy `Retain`, `volumeBindingMode: WaitForFirstConsumer` and `allowVolumeExpansion: true`. Create a PVC `scratch` (namespace `ops`, `1Gi`, `ReadWriteOnce`) using it and a Pod `scratch-user` (image `nginx`, mounting at `/scratch`). Confirm the PVC only binds after the Pod is scheduled.
+--- solution ---
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ssd-delayed
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scratch
+  namespace: ops
+spec:
+  storageClassName: ssd-delayed
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: scratch-user
+  namespace: ops
+spec:
+  containers:
+  - name: web
+    image: nginx
+    volumeMounts:
+    - name: s
+      mountPath: /scratch
+  volumes:
+  - name: s
+    persistentVolumeClaim:
+      claimName: scratch
+```
+```bash
+kubectl apply -f sc.yaml
+kubectl -n ops get pvc scratch        # Pending (WaitForFirstConsumer) until the Pod exists
+kubectl -n ops get pod scratch-user -o wide
+kubectl -n ops get pvc scratch        # Bound
+```
+`Pending` with the event `waiting for first consumer` is expected, not an error.
+
+### Q | 5 | Storage | cluster1
+Create a PersistentVolume `local-pv` (`10Gi`, `ReadWriteOnce`, storage class `local-storage`, path `/mnt/disks/vol1`) that can only be used on node `node01`. Create a PVC `local-claim` (namespace `ops`, `5Gi`) for it and a Pod `local-app` (image `busybox`, `sleep 3600`) mounting it at `/data`.
+--- solution ---
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-storage
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: /mnt/disks/vol1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: ["node01"]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-claim
+  namespace: ops
+spec:
+  storageClassName: local-storage
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: local-app
+  namespace: ops
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sleep","3600"]
+    volumeMounts:
+    - name: d
+      mountPath: /data
+  volumes:
+  - name: d
+    persistentVolumeClaim:
+      claimName: local-claim
+```
+```bash
+kubectl apply -f local.yaml
+kubectl -n ops get pvc,pod -o wide
+```
+A `local` volume **requires** `nodeAffinity`. If the StorageClass uses `WaitForFirstConsumer`, the PVC stays `Pending` until the Pod is created.
+
+### Q | 7 | Services & Networking | cluster1
+Create a TLS Secret `shop-tls` in namespace `shop` from the certificate `/opt/tls/tls.crt` and key `/opt/tls/tls.key`. Create an Ingress `secure-ing` (class `nginx`) for host `secure.example.com` that terminates TLS with this Secret and sends all paths to Service `shop-web` port 80. Add the annotation that redirects HTTP to HTTPS.
+--- solution ---
+```bash
+kubectl -n shop create secret tls shop-tls --cert=/opt/tls/tls.crt --key=/opt/tls/tls.key
+```
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure-ing
+  namespace: shop
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts: ["secure.example.com"]
+    secretName: shop-tls
+  rules:
+  - host: secure.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-web
+            port:
+              number: 80
+```
+```bash
+kubectl apply -f ing.yaml
+kubectl -n shop describe ingress secure-ing
+curl -k --resolve secure.example.com:443:<ingress-ip> https://secure.example.com
+```
+The Secret must be in the same namespace as the Ingress and must be of type `kubernetes.io/tls`.
+
+### Q | 6 | Services & Networking | cluster1
+Pods labelled `app=worker` in namespace `batch` must be able to send traffic **only** to: Pods labelled `app=queue` in namespace `messaging` (port 5672), and CIDR `10.200.0.0/16` except `10.200.5.0/24` (port 443). All other egress, including DNS to CoreDNS Pods in `kube-system` on port 53, must be handled so that name resolution keeps working. Create the NetworkPolicy `worker-egress`.
+--- solution ---
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: worker-egress
+  namespace: batch
+spec:
+  podSelector:
+    matchLabels:
+      app: worker
+  policyTypes: ["Egress"]
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: messaging
+      podSelector:
+        matchLabels:
+          app: queue
+    ports:
+    - protocol: TCP
+      port: 5672
+  - to:
+    - ipBlock:
+        cidr: 10.200.0.0/16
+        except: ["10.200.5.0/24"]
+    ports:
+    - protocol: TCP
+      port: 443
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+```
+Here `namespaceSelector` and `podSelector` are in the **same** item, so they are ANDed (queue Pods in `messaging` only). Policies are additive, so a second policy can add more allowed traffic but never subtract.
+
+### Q | 4 | Services & Networking | cluster1
+Pods in namespace `web` cannot resolve any names. Check the DNS setup and fix the problem. A test Pod `dns-check` (image `busybox:1.36`) exists.
+--- solution ---
+```bash
+kubectl -n web exec dns-check -- nslookup kubernetes.default
+kubectl -n web exec dns-check -- cat /etc/resolv.conf
+kubectl -n kube-system get pods -l k8s-app=kube-dns
+kubectl -n kube-system get svc kube-dns
+kubectl -n kube-system get endpoints kube-dns
+kubectl -n kube-system logs -l k8s-app=kube-dns
+```
+Typical faults: CoreDNS scaled to 0 (`kubectl -n kube-system scale deployment coredns --replicas=2`), a wrong Corefile (`kubectl -n kube-system edit cm coredns`), or the `kube-dns` Service with a changed selector so it has no endpoints. Confirm:
+```bash
+kubectl -n web exec dns-check -- nslookup kubernetes.default
+```
+Also check whether a NetworkPolicy blocks DNS egress from the namespace.
+
+### Q | 3 | Services & Networking | cluster1
+Create a Deployment `echo` in namespace `edge` (image `registry.k8s.io/e2e-test-images/agnhost:2.39`, args `netexec --http-port=8080`, 2 replicas). Expose it inside the cluster as `echo-svc` on port 80 and write the Service's ClusterIP to `/opt/answers/echo-ip.txt`.
+--- solution ---
+```bash
+kubectl -n edge create deployment echo --image=registry.k8s.io/e2e-test-images/agnhost:2.39 --replicas=2 --dry-run=client -o yaml > echo.yaml
+vi echo.yaml         # add args: ["netexec","--http-port=8080"]
+kubectl apply -f echo.yaml
+kubectl -n edge expose deployment echo --name=echo-svc --port=80 --target-port=8080
+kubectl -n edge get svc echo-svc -o jsonpath='{.spec.clusterIP}' > /opt/answers/echo-ip.txt
+kubectl -n edge get endpoints echo-svc
+```
+
+### Q | 8 | Troubleshooting | cluster1
+Scaling Deployments has no effect: Pods are never created for new ReplicaSets, though the API server and scheduler look fine. Find the failing component and fix it.
+--- solution ---
+```bash
+kubectl -n kube-system get pods | grep controller-manager
+kubectl -n kube-system describe pod kube-controller-manager-controlplane
+sudo -i
+crictl ps -a | grep controller
+crictl logs <container-id>
+vi /etc/kubernetes/manifests/kube-controller-manager.yaml
+```
+Check the command flags for typos, the `--kubeconfig=/etc/kubernetes/controller-manager.conf` path, the CA and signing cert paths (`--cluster-signing-cert-file`, `--root-ca-file`, `--service-account-private-key-file`) and the `volumeMounts` / `hostPath` entries matching them.
+```bash
+kubectl -n kube-system get pods | grep controller-manager       # Running
+kubectl create deployment test --image=nginx --replicas=2
+kubectl get pods
+```
+The controller manager creates ReplicaSet Pods, so when it is down Deployments are accepted but nothing happens.
+
+### Q | 7 | Troubleshooting | cluster3
+The kubelet on `node02` keeps restarting, and the node shows `NotReady`. The error mentions a missing or invalid client CA file. Fix it so the node is `Ready`.
+--- solution ---
+```bash
+ssh node02
+sudo -i
+systemctl status kubelet
+journalctl -u kubelet --no-pager | tail -30
+cat /var/lib/kubelet/config.yaml
+ls /etc/kubernetes/pki
+```
+The kubelet configuration points at a wrong `authentication.x509.clientCAFile`. Correct it to the real CA (usually `/etc/kubernetes/pki/ca.crt`):
+```bash
+vi /var/lib/kubelet/config.yaml
+systemctl daemon-reload
+systemctl restart kubelet
+systemctl status kubelet
+exit; exit
+kubectl get nodes
+```
+Other kubelet files: `/etc/kubernetes/kubelet.conf` (credentials and API server address) and `/var/lib/kubelet/kubeadm-flags.env` (extra flags such as the container runtime endpoint).
+
+### Q | 5 | Troubleshooting | cluster1
+Pod `cruncher` in namespace `perf` keeps restarting with the status `OOMKilled`. It must stay within a memory limit of `256Mi`, but it needs enough memory to start. Find out the problem and fix it. Set the container's memory request to `128Mi` and limit to `256Mi` and make sure the application uses at most 200Mi via the env var `MAX_HEAP_MB`.
+--- solution ---
+```bash
+kubectl -n perf describe pod cruncher | grep -A6 "Last State"     # Reason: OOMKilled
+kubectl -n perf get pod cruncher -o yaml > pod.yaml
+vi pod.yaml
+```
+```yaml
+    env:
+    - name: MAX_HEAP_MB
+      value: "200"
+    resources:
+      requests:
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+```
+```bash
+kubectl -n perf replace --force -f pod.yaml
+kubectl -n perf get pod cruncher -w
+kubectl -n perf top pod cruncher
+```
+OOMKilled means the container went beyond its **limit**. Raising the limit alone hides an application that still wants too much memory, so the task also caps the application setting.
+
+### Q | 5 | Troubleshooting | cluster1
+A Deployment `site` (3 replicas) in namespace `live` is behind Service `site-svc`, but the Service only has **one** endpoint although all 3 Pods are `Running`. Find the cause and fix it.
+--- solution ---
+```bash
+kubectl -n live get pods -o wide --show-labels
+kubectl -n live get endpoints site-svc
+kubectl -n live describe svc site-svc
+kubectl -n live get pods
+```
+Possible causes: two Pods fail their **readiness probe** (not Ready Pods are removed from endpoints), or two Pods have a different label than the Service selector. Check:
+```bash
+kubectl -n live describe pod <pod> | grep -A5 "Readiness"
+kubectl -n live get deploy site -o yaml | grep -A8 readinessProbe
+```
+Fix the probe (a wrong path or port) in the Deployment, or the labels in the Pod template:
+```bash
+kubectl -n live edit deployment site
+kubectl -n live rollout status deployment site
+kubectl -n live get endpoints site-svc      # 3 addresses
+```
+
+### Q | 5 | Troubleshooting | cluster1
+Users report that `http://app.example.com/` returns `503 Service Temporarily Unavailable` from the ingress controller. The Ingress `app-ing` is in namespace `app`. Find and fix the problem.
+--- solution ---
+```bash
+kubectl -n app describe ingress app-ing
+kubectl -n app get svc,endpoints
+kubectl -n app get pods --show-labels
+kubectl -n ingress-nginx logs deploy/ingress-nginx-controller --tail=20
+```
+A 503 means the controller found the route but the backend has no ready endpoints. Compare the Ingress backend Service name and **port** with the real Service (`kubectl -n app get svc`), then the Service selector with the Pod labels.
+```bash
+kubectl -n app edit ingress app-ing        # fix backend service name/port
+kubectl -n app edit svc <svc>              # or fix its selector/targetPort
+kubectl -n app get endpoints
+curl -H "Host: app.example.com" http://<ingress-ip>/
+```
+A 404 would mean no matching rule (wrong host or path) rather than a bad backend.

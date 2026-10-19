@@ -1,0 +1,677 @@
+# CKA Mock Exam 1
+
+> Standard paper: a balanced mix of the most common exam tasks.
+
+**Time:** 2 hours  |  **Questions:** 19  |  **Total:** 100%  |  **Pass mark:** 66%
+
+**Rules (as in the real exam):** you may use the Kubernetes documentation (kubernetes.io/docs, kubernetes.io/blog, helm.sh/docs and the Gateway API docs). Each task names the cluster to use, so always run the given `kubectl config use-context` first. Skip hard tasks and return to them; partial credit is given. Try the whole paper before opening any solution.
+
+| Domain | Weight |
+|---|---|
+| Cluster Architecture | 25% |
+| Workloads & Scheduling | 15% |
+| Storage | 10% |
+| Services & Networking | 20% |
+| Troubleshooting | 30% |
+
+**Setup tips:** `alias k=kubectl`, `export do="--dry-run=client -o yaml"`, `source <(kubectl completion bash)`. These are probably already set in the exam terminal.
+
+---
+
+## Question 1 (4%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+Create a ServiceAccount named `deploy-bot` in the namespace `apps`. Create a ClusterRole named `pod-reader-cr` that allows `get`, `list` and `watch` on `pods` and a Role named `cm-editor` in `apps` that allows `get`, `update` and `patch` on `configmaps`. Bind the ClusterRole to the ServiceAccount cluster-wide with a ClusterRoleBinding named `deploy-bot-pods`, and the Role with a RoleBinding named `deploy-bot-cm`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl create namespace apps 2>/dev/null
+kubectl -n apps create serviceaccount deploy-bot
+kubectl create clusterrole pod-reader-cr --verb=get,list,watch --resource=pods
+kubectl create clusterrolebinding deploy-bot-pods --clusterrole=pod-reader-cr --serviceaccount=apps:deploy-bot
+kubectl -n apps create role cm-editor --verb=get,update,patch --resource=configmaps
+kubectl -n apps create rolebinding deploy-bot-cm --role=cm-editor --serviceaccount=apps:deploy-bot
+```
+Verify:
+```bash
+kubectl auth can-i list pods -A --as system:serviceaccount:apps:deploy-bot     # yes
+kubectl auth can-i update configmaps -n apps --as system:serviceaccount:apps:deploy-bot   # yes
+kubectl auth can-i delete pods -n apps --as system:serviceaccount:apps:deploy-bot         # no
+```
+The ServiceAccount is referenced as `<namespace>:<name>` in a binding.
+
+</details>
+
+---
+
+## Question 2 (8%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+Take a snapshot of the etcd database running on this cluster and save it to `/opt/backup/etcd-snapshot.db`. Then restore the cluster from the snapshot `/opt/backup/etcd-old.db` into the new data directory `/var/lib/etcd-restore` and make etcd use it.
+
+The etcd client certificates are in `/etc/kubernetes/pki/etcd/`.
+
+<details><summary>Show solution</summary>
+
+Backup (on the control plane node):
+```bash
+sudo -i
+mkdir -p /opt/backup
+ETCDCTL_API=3 etcdctl snapshot save /opt/backup/etcd-snapshot.db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
+etcdutl snapshot status /opt/backup/etcd-snapshot.db -w table
+```
+Find the real certificate paths if they differ: `grep -E "cert-file|key-file|trusted-ca" /etc/kubernetes/manifests/etcd.yaml`.
+
+Restore:
+```bash
+etcdutl snapshot restore /opt/backup/etcd-old.db --data-dir /var/lib/etcd-restore
+vi /etc/kubernetes/manifests/etcd.yaml
+```
+In the manifest, change the `etcd-data` volume's `hostPath.path` from `/var/lib/etcd` to `/var/lib/etcd-restore`. Leave the container's `--data-dir` flag and `mountPath` as they are. The static Pod restarts by itself. Wait a minute, then:
+```bash
+kubectl get pods -n kube-system
+```
+If `kubectl` hangs, give the API server time to reconnect to etcd.
+
+</details>
+
+---
+
+## Question 3 (7%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster2`
+
+The control plane node `cp2` and the worker node `w2` of `cluster2` run Kubernetes v1.34.x. Upgrade the **control plane** node to v1.35.0 using kubeadm, including kubelet and kubectl. Do not upgrade etcd separately and do not touch the worker node.
+
+Drain the control plane node before the upgrade and make it schedulable again afterwards.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl config use-context cluster2
+kubectl drain cp2 --ignore-daemonsets
+ssh cp2
+sudo -i
+apt-get update
+apt-cache madison kubeadm | grep 1.35.0
+apt-get install -y kubeadm=1.35.0-1.1        # use the exact string from madison
+kubeadm upgrade plan
+kubeadm upgrade apply v1.35.0
+apt-get install -y kubelet=1.35.0-1.1 kubectl=1.35.0-1.1
+systemctl daemon-reload
+systemctl restart kubelet
+exit; exit
+kubectl uncordon cp2
+kubectl get nodes     # cp2 shows v1.35.0
+```
+If the packages are held, use `apt-mark unhold kubeadm kubelet kubectl` first and hold them again afterwards. Worker nodes use `kubeadm upgrade node` instead of `apply`.
+
+</details>
+
+---
+
+## Question 4 (3%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+Node `node02` needs maintenance. Make it unschedulable and evict all workloads from it. DaemonSet Pods may stay. Afterwards, create a Pod `maint-check` using image `nginx` and confirm it is **not** scheduled on `node02`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl drain node02 --ignore-daemonsets --delete-emptydir-data
+kubectl run maint-check --image=nginx
+kubectl get pod maint-check -o wide      # NODE is not node02
+```
+`drain` cordons the node first. Add `--force` only if a bare Pod blocks the drain and the task allows deleting it. Leave the node cordoned unless the task says to uncordon.
+
+</details>
+
+---
+
+## Question 5 (3%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+Using Helm, add the repository `bitnami` (`https://charts.bitnami.com/bitnami`), then install the chart `bitnami/nginx` as release `web` in namespace `helm-web` with 2 replicas (`replicaCount=2`). Then upgrade the release so the service type is `NodePort`.
+
+<details><summary>Show solution</summary>
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install web bitnami/nginx -n helm-web --create-namespace --set replicaCount=2
+helm upgrade web bitnami/nginx -n helm-web --set replicaCount=2 --set service.type=NodePort
+helm list -n helm-web
+kubectl -n helm-web get svc
+```
+With `--set`, repeat earlier values on upgrade (or use `--reuse-values`), otherwise they reset to defaults. Check settings with `helm show values bitnami/nginx | grep -n replicaCount`.
+
+</details>
+
+---
+
+## Question 6 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+In namespace `shop`, Deployment `web` runs `nginx:1.25` with 4 replicas. Update the image to `nginx:1.26`, making sure that at most 1 Pod is unavailable and at most 2 extra Pods are created during the update. After the rollout, the new version turns out to be faulty. Roll back to the previous revision and record the final image in `/opt/answers/web-image.txt`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n shop edit deployment web
+```
+Under `spec.strategy`:
+```yaml
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 2
+```
+```bash
+kubectl -n shop set image deployment/web nginx=nginx:1.26     # container name may differ: check with describe
+kubectl -n shop rollout status deployment/web
+kubectl -n shop rollout history deployment/web
+kubectl -n shop rollout undo deployment/web
+mkdir -p /opt/answers
+kubectl -n shop get deployment web -o jsonpath='{.spec.template.spec.containers[0].image}' > /opt/answers/web-image.txt
+cat /opt/answers/web-image.txt     # nginx:1.25
+```
+
+</details>
+
+---
+
+## Question 7 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+Node `node01` is labelled `disk=ssd` and has the taint `team=data:NoSchedule`. Create a Pod `db-pod` using image `redis:7` that must run only on nodes labelled `disk=ssd` and that tolerates the taint.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: db-pod
+spec:
+  nodeSelector:
+    disk: ssd
+  tolerations:
+  - key: team
+    operator: Equal
+    value: data
+    effect: NoSchedule
+  containers:
+  - name: redis
+    image: redis:7
+```
+```bash
+kubectl get nodes --show-labels | grep disk
+kubectl describe node node01 | grep -i taint
+kubectl apply -f db-pod.yaml
+kubectl get pod db-pod -o wide
+```
+The toleration only permits scheduling on the tainted node; `nodeSelector` is what attracts the Pod to it.
+
+</details>
+
+---
+
+## Question 8 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+Create a HorizontalPodAutoscaler named `api-hpa` for Deployment `api` in namespace `prod` that keeps average CPU utilisation at 60%, with a minimum of 2 and a maximum of 8 replicas. Set the scale-down stabilisation window to 120 seconds.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+  namespace: prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+```
+```bash
+kubectl apply -f hpa.yaml
+kubectl -n prod get hpa api-hpa
+```
+The Deployment's containers must have CPU `requests` for utilisation to be calculated. `kubectl autoscale deployment api --cpu-percent=60 --min=2 --max=8 -n prod` creates the basics, but `behavior` needs YAML.
+
+</details>
+
+---
+
+## Question 9 (6%)
+
+**Domain:** Storage
+
+> Context: `kubectl config use-context cluster1`
+
+Create a PersistentVolume `log-pv` with capacity `1Gi`, access mode `ReadWriteOnce`, `hostPath` `/mnt/logs` and storage class `manual`. Create a PersistentVolumeClaim `log-pvc` in namespace `monitoring` that binds to it using `500Mi`. Create a Pod `log-writer` using `busybox` that mounts the claim at `/logs` and writes `ready` to `/logs/status` before sleeping.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: log-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: manual
+  hostPath:
+    path: /mnt/logs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: log-pvc
+  namespace: monitoring
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: log-writer
+  namespace: monitoring
+spec:
+  containers:
+  - name: writer
+    image: busybox
+    command: ["sh","-c","echo ready > /logs/status; sleep 3600"]
+    volumeMounts:
+    - name: logs
+      mountPath: /logs
+  volumes:
+  - name: logs
+    persistentVolumeClaim:
+      claimName: log-pvc
+```
+```bash
+kubectl apply -f storage.yaml
+kubectl -n monitoring get pvc          # Bound
+kubectl -n monitoring exec log-writer -- cat /logs/status
+```
+PersistentVolumes are cluster-scoped, so they have no namespace.
+
+</details>
+
+---
+
+## Question 10 (4%)
+
+**Domain:** Storage
+
+> Context: `kubectl config use-context cluster1`
+
+Create a StorageClass `fast-local` using provisioner `kubernetes.io/no-provisioner` with `volumeBindingMode: WaitForFirstConsumer` and make it the **default** StorageClass. Another class `old-default` is currently default, so remove that status from it.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-local
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+```
+```bash
+kubectl apply -f sc.yaml
+kubectl patch sc old-default -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+kubectl get sc       # only fast-local shows (default)
+```
+Two default classes at once make new PVCs behave unpredictably, so always switch the old one off.
+
+</details>
+
+---
+
+## Question 11 (7%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+In namespace `secure`, Pods labelled `app=db` run a database on port `5432`. Create a NetworkPolicy `db-allow` that allows ingress to these Pods **only** from Pods labelled `app=api` in the same namespace and from any Pod in namespaces labelled `team=ops`, and only on port 5432. Do not change the Pods.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-allow
+  namespace: secure
+spec:
+  podSelector:
+    matchLabels:
+      app: db
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: api
+    - namespaceSelector:
+        matchLabels:
+          team: ops
+    ports:
+    - protocol: TCP
+      port: 5432
+```
+```bash
+kubectl apply -f np.yaml
+kubectl get ns --show-labels | grep team
+kubectl -n secure describe netpol db-allow
+```
+Two entries in `from` (each starting with `-`) are ORed. If the namespace and Pod selectors were in the same entry they would be ANDed, which is not what the task asks for.
+
+</details>
+
+---
+
+## Question 12 (6%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+Deployment `shop-web` (port 80) exposed by Service `shop-web-svc` and Deployment `shop-api` (port 8080) exposed by Service `shop-api-svc` exist in namespace `shop`. Create an Ingress `shop-ing` with ingress class `nginx` that routes `shop.example.com/` to `shop-web-svc` and `shop.example.com/api` to `shop-api-svc`.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ing
+  namespace: shop
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: shop.example.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-api-svc
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-web-svc
+            port:
+              number: 80
+```
+```bash
+kubectl apply -f ing.yaml
+kubectl -n shop get ingress shop-ing
+kubectl -n shop describe ingress shop-ing        # backends must show endpoints
+curl -H "Host: shop.example.com" http://<ingress-node-ip>:<nodePort>/api
+```
+Quick imperative form: `kubectl -n shop create ingress shop-ing --class=nginx --rule="shop.example.com/api*=shop-api-svc:8080" --rule="shop.example.com/*=shop-web-svc:80"`.
+
+</details>
+
+---
+
+## Question 13 (4%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+Deployment `catalog` in namespace `store` has 3 Pods listening on port 8080. Expose it with a Service named `catalog-np` of type NodePort on port `80`, target port `8080` and node port `30090`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n store expose deployment catalog --name=catalog-np --type=NodePort --port=80 --target-port=8080 --dry-run=client -o yaml > svc.yaml
+vi svc.yaml       # add nodePort: 30090 under ports
+kubectl apply -f svc.yaml
+kubectl -n store get svc catalog-np
+kubectl -n store get endpoints catalog-np     # 3 endpoints
+```
+```yaml
+ports:
+- port: 80
+  targetPort: 8080
+  nodePort: 30090
+```
+`kubectl expose` has no flag for `nodePort`, so edit the generated YAML.
+
+</details>
+
+---
+
+## Question 14 (3%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+A Pod `dns-test` should resolve the Service `catalog-np` in namespace `store`. From a temporary Pod in the `default` namespace, look up the Service's DNS name and save the full result of `nslookup` to `/opt/answers/dns.txt`. Also write the cluster DNS Service IP to `/opt/answers/dns-ip.txt`.
+
+<details><summary>Show solution</summary>
+
+```bash
+mkdir -p /opt/answers
+kubectl run dns-test --image=busybox:1.36 --restart=Never --rm -it -- nslookup catalog-np.store.svc.cluster.local > /opt/answers/dns.txt
+kubectl -n kube-system get svc kube-dns -o jsonpath='{.spec.clusterIP}' > /opt/answers/dns-ip.txt
+cat /opt/answers/dns.txt /opt/answers/dns-ip.txt
+```
+Cross-namespace names use `<svc>.<namespace>`, and the full form is `<svc>.<namespace>.svc.cluster.local`. The Service is named `kube-dns` even when CoreDNS is the software behind it.
+
+</details>
+
+---
+
+## Question 15 (7%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster3`
+
+Node `w3` of `cluster3` shows `NotReady`. Investigate and fix the problem so the node becomes `Ready`. You can ssh to the node.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl config use-context cluster3
+kubectl describe node w3 | sed -n '/Conditions/,/Addresses/p'
+ssh w3
+sudo -i
+systemctl status kubelet
+journalctl -u kubelet --no-pager | tail -30
+```
+Typical causes: kubelet stopped, a typo in a path or flag, or a wrong CA/config path.
+```bash
+systemctl enable --now kubelet
+# if it crashes: check the unit and config
+systemctl cat kubelet
+cat /var/lib/kubelet/config.yaml
+cat /etc/kubernetes/kubelet.conf | grep -E "server|certificate-authority"
+```
+Fix the wrong path (for example `clientCAFile: /etc/kubernetes/pki/ca.crt`), then:
+```bash
+systemctl daemon-reload
+systemctl restart kubelet
+exit; exit
+kubectl get nodes     # w3 Ready
+```
+Also check the container runtime: `systemctl status containerd`.
+
+</details>
+
+---
+
+## Question 16 (8%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+New Pods stay `Pending` and no events show a scheduler decision. Find out why and fix it so the Pod `sched-check` (already created) gets scheduled.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl get pods -n kube-system | grep scheduler
+kubectl describe pod sched-check          # no Events about scheduling
+kubectl -n kube-system describe pod kube-scheduler-controlplane
+```
+The scheduler is a static Pod, so check its manifest on the control plane node:
+```bash
+sudo -i
+vi /etc/kubernetes/manifests/kube-scheduler.yaml
+crictl ps -a | grep scheduler
+crictl logs <container-id>
+```
+Common faults: a typo in the command (`kube-schedulerr`), wrong `--kubeconfig` path (`/etc/kubernetes/scheduler.conf`), a bad image tag, or a wrong volume mount path. Correct the manifest; the kubelet recreates the Pod:
+```bash
+kubectl -n kube-system get pods | grep scheduler     # Running
+kubectl get pod sched-check -o wide
+```
+If a restart is needed, move the manifest out of `/etc/kubernetes/manifests/` for 20 seconds and back.
+
+</details>
+
+---
+
+## Question 17 (5%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+Pod `report-gen` in namespace `jobs` is in `CrashLoopBackOff`. Find the cause and fix it. The Pod must keep its name, and the container should run the command `sleep 3600`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n jobs get pod report-gen
+kubectl -n jobs describe pod report-gen     # Last State, Exit Code, Events
+kubectl -n jobs logs report-gen --previous
+```
+Typical problems: a wrong command or args, a missing ConfigMap/Secret key, or a bad environment variable. Fix by replacing the Pod, since most Pod fields cannot be edited:
+```bash
+kubectl -n jobs get pod report-gen -o yaml > pod.yaml
+vi pod.yaml                          # fix command: ["sleep","3600"]
+kubectl -n jobs replace --force -f pod.yaml
+kubectl -n jobs get pod report-gen   # Running
+```
+Delete `status:` and other runtime fields from the YAML only if `replace` complains.
+
+</details>
+
+---
+
+## Question 18 (4%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+Service `inventory-svc` in namespace `stock` returns no response, but its Pods are `Running`. Find the cause and fix it **without** recreating the Pods.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n stock get svc,endpoints inventory-svc
+kubectl -n stock describe svc inventory-svc          # Selector, Port, TargetPort
+kubectl -n stock get pods --show-labels
+```
+If Endpoints are `<none>`, the Service selector doesn't match the Pod labels. If endpoints exist but nothing answers, `targetPort` doesn't match the container port.
+```bash
+kubectl -n stock edit svc inventory-svc     # fix selector or targetPort
+kubectl -n stock get endpoints inventory-svc
+kubectl run t --rm -it --restart=Never --image=busybox -- wget -qO- -T 3 inventory-svc.stock
+```
+Changing the Service is the safe fix because the task forbids touching the Pods.
+
+</details>
+
+---
+
+## Question 19 (6%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+Write the names of the three Pods with the highest CPU usage across all namespaces (highest first) to `/opt/answers/top-pods.txt`, one per line. Then save the last 50 log lines of the container `app` in Pod `orders-0` in namespace `shop` to `/opt/answers/orders.log`. Finally, write the 5 most recent cluster events (all namespaces) to `/opt/answers/events.txt`.
+
+<details><summary>Show solution</summary>
+
+```bash
+mkdir -p /opt/answers
+kubectl top pod -A --sort-by=cpu --no-headers | head -3 | awk '{print $2}' > /opt/answers/top-pods.txt
+kubectl -n shop logs orders-0 -c app --tail=50 > /opt/answers/orders.log
+kubectl get events -A --sort-by=.metadata.creationTimestamp | tail -5 > /opt/answers/events.txt
+```
+`awk '{print $2}'` prints the Pod name (column 2 with `-A`). If the task wants the namespace as well, print `$1` too. Metrics-server must be running for `kubectl top`. State changes while you work, so run answer commands near the end of the exam.
+
+</details>
+
+---
+
+*These solutions are written for practice. Always verify commands against the official documentation and your cluster version.*

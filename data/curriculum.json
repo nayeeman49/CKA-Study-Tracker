@@ -1324,6 +1324,41 @@
         }
       ],
       "notes": true
+    },
+    {
+      "id": "19-CKA-Mock-Exam-Papers",
+      "title": "CKA Mock Exam Papers",
+      "lessons": [
+        {
+          "id": "19-CKA-Mock-Exam-Papers/01-CKA-Mock-Exam-1",
+          "title": "CKA Mock Exam 1",
+          "domain": "practice",
+          "kind": "mock",
+          "minutes": 120
+        },
+        {
+          "id": "19-CKA-Mock-Exam-Papers/02-CKA-Mock-Exam-2",
+          "title": "CKA Mock Exam 2",
+          "domain": "practice",
+          "kind": "mock",
+          "minutes": 120
+        },
+        {
+          "id": "19-CKA-Mock-Exam-Papers/03-CKA-Mock-Exam-3",
+          "title": "CKA Mock Exam 3",
+          "domain": "practice",
+          "kind": "mock",
+          "minutes": 120
+        },
+        {
+          "id": "19-CKA-Mock-Exam-Papers/04-CKA-Mock-Exam-4",
+          "title": "CKA Mock Exam 4",
+          "domain": "practice",
+          "kind": "mock",
+          "minutes": 120
+        }
+      ],
+      "notes": false
     }
   ]
 }

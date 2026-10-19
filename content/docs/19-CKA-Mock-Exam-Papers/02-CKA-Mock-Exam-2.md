@@ -1,0 +1,739 @@
+# CKA Mock Exam 2
+
+> Standard paper: certificates, Gateway API, Kustomize and CRDs.
+
+**Time:** 2 hours  |  **Questions:** 19  |  **Total:** 100%  |  **Pass mark:** 66%
+
+**Rules (as in the real exam):** you may use the Kubernetes documentation (kubernetes.io/docs, kubernetes.io/blog, helm.sh/docs and the Gateway API docs). Each task names the cluster to use, so always run the given `kubectl config use-context` first. Skip hard tasks and return to them; partial credit is given. Try the whole paper before opening any solution.
+
+| Domain | Weight |
+|---|---|
+| Cluster Architecture | 25% |
+| Workloads & Scheduling | 15% |
+| Storage | 10% |
+| Services & Networking | 20% |
+| Troubleshooting | 30% |
+
+**Setup tips:** `alias k=kubectl`, `export do="--dry-run=client -o yaml"`, `source <(kubectl completion bash)`. These are probably already set in the exam terminal.
+
+---
+
+## Question 1 (5%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+A new developer `priya` needs read-only access to Pods in the namespace `dev`. Create a private key and a CSR for the user `priya` (organisation `dev-team`), submit it as a CertificateSigningRequest named `priya-csr` using the signer `kubernetes.io/kube-apiserver-client`, approve it, and save the issued certificate to `/opt/priya/priya.crt`. Then create a Role `pod-viewer` (get, list, watch on pods) in `dev` and a RoleBinding `priya-view` for the user.
+
+<details><summary>Show solution</summary>
+
+```bash
+mkdir -p /opt/priya && cd /opt/priya
+openssl genrsa -out priya.key 2048
+openssl req -new -key priya.key -out priya.csr -subj "/CN=priya/O=dev-team"
+cat priya.csr | base64 -w0
+```
+```yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: priya-csr
+spec:
+  request: <paste the base64 string>
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400
+  usages:
+  - client auth
+```
+```bash
+kubectl apply -f csr.yaml
+kubectl certificate approve priya-csr
+kubectl get csr priya-csr -o jsonpath='{.status.certificate}' | base64 -d > /opt/priya/priya.crt
+kubectl -n dev create role pod-viewer --verb=get,list,watch --resource=pods
+kubectl -n dev create rolebinding priya-view --role=pod-viewer --user=priya
+kubectl auth can-i list pods -n dev --as priya        # yes
+```
+The CN becomes the user name and O the group.
+
+</details>
+
+---
+
+## Question 2 (6%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+Check when the cluster certificates expire on the control plane node and save the expiry date of the API server certificate (as shown by `openssl`) to `/opt/answers/apiserver-expiry.txt`. Then renew **only** the certificate of the API server's kubelet client (`apiserver-kubelet-client`) with kubeadm.
+
+<details><summary>Show solution</summary>
+
+```bash
+sudo -i
+kubeadm certs check-expiration
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -enddate > /opt/answers/apiserver-expiry.txt
+kubeadm certs renew apiserver-kubelet-client
+kubeadm certs check-expiration | grep apiserver-kubelet-client
+```
+`kubeadm certs renew all` renews everything, but the task asks for one certificate. After renewing certs the control plane Pods must be restarted to pick them up (move the manifests out and back, or restart the kubelet). The `openssl ... -enddate` output looks like `notAfter=Oct 18 12:00:00 2027 GMT`.
+
+</details>
+
+---
+
+## Question 3 (6%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster2`
+
+Node `w4` is a freshly provisioned machine that already has containerd, kubeadm, kubelet and kubectl installed. Join it to `cluster2` as a worker node. You do not have the join command.
+
+<details><summary>Show solution</summary>
+
+On the control plane:
+```bash
+kubectl config use-context cluster2
+ssh cp2
+sudo -i
+kubeadm token create --print-join-command
+```
+Copy the printed command, then on `w4`:
+```bash
+exit; exit
+ssh w4
+sudo -i
+kubeadm join 10.0.0.10:6443 --token abcdef.0123456789abcdef --discovery-token-ca-cert-hash sha256:<hash>
+exit; exit
+kubectl get nodes      # w4 Ready after a minute
+```
+If the node stays `NotReady`, check that a CNI plugin is installed and that kubelet is running (`systemctl status kubelet`).
+
+</details>
+
+---
+
+## Question 4 (4%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+The CRD `backups.stable.example.com` is installed. List all resources of this type in every namespace, and write the CRD's `spec.group` and the list of its short names to `/opt/answers/crd.txt` (one per line). Then create a `Backup` resource named `nightly` in namespace `ops` with `spec.schedule` set to `0 2 * * *` and `spec.target` set to `db`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl get crd backups.stable.example.com -o yaml | less
+kubectl get backups -A
+kubectl get crd backups.stable.example.com -o jsonpath='{.spec.group}{"\n"}{.spec.names.shortNames}{"\n"}' > /opt/answers/crd.txt
+kubectl explain backup.spec
+```
+```yaml
+apiVersion: stable.example.com/v1
+kind: Backup
+metadata:
+  name: nightly
+  namespace: ops
+spec:
+  schedule: "0 2 * * *"
+  target: db
+```
+```bash
+kubectl apply -f backup.yaml
+kubectl -n ops get backup nightly
+```
+Check the API version under `spec.versions` in the CRD. `kubectl explain` works on custom resources too.
+
+</details>
+
+---
+
+## Question 5 (4%)
+
+**Domain:** Cluster Architecture
+
+> Context: `kubectl config use-context cluster1`
+
+A Kustomize project exists in `/opt/kust/app`. It contains a `kustomization.yaml`, a Deployment `web` and a Service. Without editing the base manifests, build a production variant in `/opt/kust/overlays/prod` that sets the namespace `prod`, adds the label `env=prod` to every resource, sets `replicas` of Deployment `web` to 5 and then apply it.
+
+<details><summary>Show solution</summary>
+
+```bash
+mkdir -p /opt/kust/overlays/prod
+cat > /opt/kust/overlays/prod/kustomization.yaml <<'YAML'
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: prod
+resources:
+- ../../app
+labels:
+- pairs:
+    env: prod
+  includeSelectors: false
+replicas:
+- name: web
+  count: 5
+YAML
+kubectl create namespace prod
+kubectl kustomize /opt/kust/overlays/prod | less      # preview
+kubectl apply -k /opt/kust/overlays/prod
+kubectl -n prod get deploy web
+```
+`commonLabels` also works but is deprecated. Setting `includeSelectors: false` avoids changing the immutable selector.
+
+</details>
+
+---
+
+## Question 6 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+Create a ConfigMap `app-config` in namespace `web` with `LOG_LEVEL=debug` and `MODE=prod`, and a Secret `app-secret` with `DB_PASS=s3cr3t`. Create a Pod `app` (image `nginx`) that gets **all** ConfigMap keys as environment variables and the Secret key `DB_PASS` as an environment variable called `DATABASE_PASSWORD`. Also mount the ConfigMap as files at `/etc/app`.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n web create configmap app-config --from-literal=LOG_LEVEL=debug --from-literal=MODE=prod
+kubectl -n web create secret generic app-secret --from-literal=DB_PASS=s3cr3t
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+  namespace: web
+spec:
+  containers:
+  - name: app
+    image: nginx
+    envFrom:
+    - configMapRef:
+        name: app-config
+    env:
+    - name: DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: app-secret
+          key: DB_PASS
+    volumeMounts:
+    - name: cfg
+      mountPath: /etc/app
+  volumes:
+  - name: cfg
+    configMap:
+      name: app-config
+```
+```bash
+kubectl apply -f app.yaml
+kubectl -n web exec app -- env | grep -E "LOG_LEVEL|DATABASE_PASSWORD"
+kubectl -n web exec app -- ls /etc/app
+```
+
+</details>
+
+---
+
+## Question 7 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+Create a Pod `multi` in namespace `ops` with: an init container `setup` (image `busybox`) that writes `ready` to `/work/flag`, a main container `main` (image `nginx`) that mounts the shared volume at `/usr/share/nginx/html`, and a sidecar container `watcher` (image `busybox`, restartPolicy `Always` as a native sidecar) that tails `/work/flag` forever. All use an `emptyDir` volume named `work` (mounted at `/work` where needed).
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi
+  namespace: ops
+spec:
+  initContainers:
+  - name: setup
+    image: busybox
+    command: ["sh","-c","echo ready > /work/flag"]
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  - name: watcher
+    image: busybox
+    restartPolicy: Always
+    command: ["sh","-c","tail -f /work/flag"]
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  containers:
+  - name: main
+    image: nginx
+    volumeMounts:
+    - name: work
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: work
+    emptyDir: {}
+```
+```bash
+kubectl apply -f multi.yaml
+kubectl -n ops get pod multi          # 2/2 Running
+kubectl -n ops logs multi -c watcher
+```
+A native sidecar is an init container with `restartPolicy: Always`: it starts before the main container and keeps running with it. Init containers run in order, so `setup` finishes first.
+
+</details>
+
+---
+
+## Question 8 (5%)
+
+**Domain:** Workloads & Scheduling
+
+> Context: `kubectl config use-context cluster1`
+
+Create a PriorityClass `high-prio` with value `100000`. Create a Deployment `critical` in namespace `ops` (image `nginx`, 2 replicas) that uses it. In the same namespace, create a ResourceQuota `ops-quota` limiting the namespace to 10 Pods, `requests.cpu` of `4` and `limits.memory` of `8Gi`.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-prio
+value: 100000
+globalDefault: false
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ops-quota
+  namespace: ops
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "4"
+    limits.memory: 8Gi
+```
+```bash
+kubectl apply -f prio.yaml
+kubectl -n ops create deployment critical --image=nginx --replicas=2 --dry-run=client -o yaml > dep.yaml
+vi dep.yaml        # add priorityClassName: high-prio under spec.template.spec
+kubectl apply -f dep.yaml
+kubectl -n ops describe quota ops-quota
+```
+```yaml
+    spec:
+      priorityClassName: high-prio
+      containers:
+```
+Once a quota covers `requests.cpu` or `limits.memory`, every new Pod in the namespace must set those values, or it is rejected.
+
+</details>
+
+---
+
+## Question 9 (5%)
+
+**Domain:** Storage
+
+> Context: `kubectl config use-context cluster1`
+
+PersistentVolume `data-pv` currently has the reclaim policy `Delete`. Change it to `Retain`. Then expand the PVC `data-pvc` in namespace `db` from `1Gi` to `2Gi`. The StorageClass used allows volume expansion.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl patch pv data-pv -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+kubectl get pv data-pv
+kubectl -n db patch pvc data-pvc -p '{"spec":{"resources":{"requests":{"storage":"2Gi"}}}}'
+kubectl -n db get pvc data-pvc
+kubectl -n db describe pvc data-pvc          # Conditions may show FileSystemResizePending
+```
+If the patch fails with "only dynamically provisioned pvc can be resized", check `kubectl get sc` for `ALLOWVOLUMEEXPANSION`; set `allowVolumeExpansion: true` on the StorageClass first. A Pod using the volume may need a restart for the file system to resize.
+
+</details>
+
+---
+
+## Question 10 (5%)
+
+**Domain:** Storage
+
+> Context: `kubectl config use-context cluster1`
+
+Create a Pod `shared` in namespace `ops` with two containers `writer` and `reader` (both `busybox`) sharing a `hostPath` volume `/data/shared` mounted at `/shared` in both. `writer` appends the date to `/shared/log.txt` every 5 seconds; `reader` prints the file with `tail -f`. The `reader` mount must be read-only.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shared
+  namespace: ops
+spec:
+  containers:
+  - name: writer
+    image: busybox
+    command: ["sh","-c","while true; do date >> /shared/log.txt; sleep 5; done"]
+    volumeMounts:
+    - name: sh
+      mountPath: /shared
+  - name: reader
+    image: busybox
+    command: ["sh","-c","touch /shared/log.txt; tail -f /shared/log.txt"]
+    volumeMounts:
+    - name: sh
+      mountPath: /shared
+      readOnly: true
+  volumes:
+  - name: sh
+    hostPath:
+      path: /data/shared
+      type: DirectoryOrCreate
+```
+`readOnly: true` goes on the `volumeMounts` entry, not the volume. `touch` in `reader` would fail on a read-only mount if the file did not exist, so create the file from `writer` or drop it. Check with `kubectl -n ops logs shared -c reader`.
+
+</details>
+
+---
+
+## Question 11 (7%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+Gateway API is installed. Create a Gateway `web-gw` in namespace `web` using GatewayClass `nginx` with an HTTP listener on port 80. Create an HTTPRoute `web-route` that routes host `app.example.org`: path prefix `/blue` to Service `blue-svc:80` and everything else to `green-svc:80`.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: web-gw
+  namespace: web
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: web-route
+  namespace: web
+spec:
+  parentRefs:
+  - name: web-gw
+  hostnames: ["app.example.org"]
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /blue
+    backendRefs:
+    - name: blue-svc
+      port: 80
+  - backendRefs:
+    - name: green-svc
+      port: 80
+```
+```bash
+kubectl apply -f gw.yaml
+kubectl -n web get gateway,httproute
+kubectl -n web describe httproute web-route      # Accepted, ResolvedRefs
+```
+A rule with no `matches` acts as the default. Check the GatewayClass name with `kubectl get gatewayclass`. A Gateway replaces the Ingress for new designs and uses `parentRefs` to attach routes.
+
+</details>
+
+---
+
+## Question 12 (6%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+Namespace `finance` has a default-deny ingress NetworkPolicy. Pods labelled `app=ledger` must accept traffic on port `9000` from the namespace `audit` only (identified by the label `kubernetes.io/metadata.name=audit`), and must be allowed to send egress **only** to Pods labelled `app=db` in the same namespace on port 5432 and to DNS (UDP/TCP 53). Create the NetworkPolicy `ledger-policy`.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ledger-policy
+  namespace: finance
+spec:
+  podSelector:
+    matchLabels:
+      app: ledger
+  policyTypes: ["Ingress","Egress"]
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: audit
+    ports:
+    - protocol: TCP
+      port: 9000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: db
+    ports:
+    - protocol: TCP
+      port: 5432
+  - ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+```
+Without the DNS egress rule, name lookups fail as soon as `Egress` is restricted. An egress rule with only `ports` (no `to`) allows those ports to any destination.
+
+</details>
+
+---
+
+## Question 13 (4%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+Create a headless Service `db-hl` for the StatefulSet `db` in namespace `data` (Pods labelled `app=db`, port 5432) and an ExternalName Service `ext-api` in the same namespace that resolves to `api.partner.example.com`. Show the DNS name of the first Pod of the StatefulSet in `/opt/answers/pod-dns.txt`.
+
+<details><summary>Show solution</summary>
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-hl
+  namespace: data
+spec:
+  clusterIP: None
+  selector:
+    app: db
+  ports:
+  - port: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ext-api
+  namespace: data
+spec:
+  type: ExternalName
+  externalName: api.partner.example.com
+```
+```bash
+kubectl apply -f svc.yaml
+echo "db-0.db-hl.data.svc.cluster.local" > /opt/answers/pod-dns.txt
+kubectl -n data get statefulset db -o jsonpath='{.spec.serviceName}'     # should be db-hl for stable DNS
+```
+Pod DNS in a StatefulSet is `<pod>.<service>.<namespace>.svc.cluster.local` and only works when `spec.serviceName` of the StatefulSet matches the headless Service.
+
+</details>
+
+---
+
+## Question 14 (3%)
+
+**Domain:** Services & Networking
+
+> Context: `kubectl config use-context cluster1`
+
+CoreDNS must forward all lookups for the domain `corp.internal` to the DNS server `10.50.0.53`. Make the change in the CoreDNS configuration and verify that the Pods are running with the new configuration.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n kube-system edit configmap coredns
+```
+Add a new server block next to the existing one:
+```
+corp.internal:53 {
+    errors
+    cache 30
+    forward . 10.50.0.53
+}
+```
+```bash
+kubectl -n kube-system rollout restart deployment coredns
+kubectl -n kube-system get pods -l k8s-app=kube-dns
+kubectl -n kube-system logs -l k8s-app=kube-dns --tail=5
+```
+The built-in `reload` plugin usually picks up changes within a minute, but a restart makes the change certain. A broken Corefile makes the new Pods crash, so check the logs.
+
+</details>
+
+---
+
+## Question 15 (8%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+`kubectl` commands fail with `connection refused`. The cluster was working before a configuration change on the control plane node. Find and fix the problem so that the API server is healthy again.
+
+<details><summary>Show solution</summary>
+
+```bash
+sudo -i
+systemctl status kubelet
+crictl ps -a | grep -E "apiserver|etcd"
+crictl logs <apiserver-container-id> 2>&1 | tail -20
+```
+Read the API server's logs; they name the failing flag or file. Check:
+```bash
+vi /etc/kubernetes/manifests/kube-apiserver.yaml
+```
+Typical faults: a wrong etcd certificate path (`--etcd-certfile`), a typo in `--etcd-servers`, a bad CA path, or an invalid flag. Compare paths with the real files:
+```bash
+ls /etc/kubernetes/pki /etc/kubernetes/pki/etcd
+grep -E "listen-client|cert-file" /etc/kubernetes/manifests/etcd.yaml
+```
+Fix the manifest and wait for the kubelet to restart the Pod.
+```bash
+kubectl get nodes
+```
+If even `crictl ps` shows nothing, check the kubelet: `journalctl -u kubelet | tail`.
+
+</details>
+
+---
+
+## Question 16 (6%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster2`
+
+Pods on node `w5` in `cluster2` fail to start, and the node shows `Ready`. `kubectl describe` on a Pod shows `failed to get sandbox image` or `container runtime is down` errors. Fix the node so a test Pod `rt-test` (image `nginx`) pinned to `w5` runs.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl config use-context cluster2
+kubectl describe pod rt-test | tail -15
+ssh w5
+sudo -i
+systemctl status containerd
+journalctl -u containerd --no-pager | tail -20
+crictl info | head
+```
+```bash
+systemctl enable --now containerd
+systemctl restart kubelet
+cat /etc/containerd/config.toml | grep -n sandbox
+crictl ps
+exit; exit
+kubectl get pod rt-test -o wide
+```
+Typical problems: containerd stopped, a broken `/etc/containerd/config.toml` or a wrong runtime endpoint in the kubelet flags (`/run/containerd/containerd.sock`).
+
+</details>
+
+---
+
+## Question 17 (5%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+PersistentVolumeClaim `reports-pvc` in namespace `reports` is `Pending`, so Pod `reports-pod` cannot start. A PersistentVolume `reports-pv` exists. Fix the problem so the PVC is `Bound` and the Pod is running. Do not delete the PV.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n reports describe pvc reports-pvc      # Events say why
+kubectl get pv reports-pv -o yaml
+kubectl -n reports get pvc reports-pvc -o yaml
+```
+Compare: access modes, `storageClassName`, capacity (PVC request must be <= PV size), and `volumeMode`. A claim cannot be edited to a smaller size or a new class, so recreate it:
+```bash
+kubectl -n reports get pvc reports-pvc -o yaml > pvc.yaml
+vi pvc.yaml        # match accessModes, storageClassName, requests.storage
+kubectl -n reports replace --force -f pvc.yaml
+kubectl -n reports get pvc
+kubectl -n reports get pod reports-pod
+```
+If the Pod was stuck, recreate it too: `kubectl -n reports delete pod reports-pod` and apply its manifest again.
+
+</details>
+
+---
+
+## Question 18 (5%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+Deployment `big` in namespace `ops` has 3 replicas but only 1 Pod is running; the other 2 are `Pending`. Find the reason and fix it so all 3 replicas run, **without** adding nodes and without deleting the Deployment.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n ops describe pod -l app=big | tail -15
+```
+The Events say either `Insufficient cpu/memory` or `node(s) had untolerated taint`.
+```bash
+kubectl describe node | grep -A6 "Allocated resources"
+kubectl describe nodes | grep -i taint
+kubectl -n ops get deploy big -o yaml | grep -A8 resources
+```
+Fixes: for resources, reduce the container `requests` so that each Pod fits (`kubectl -n ops edit deployment big`); for a taint, add a matching toleration in the Pod template. Confirm:
+```bash
+kubectl -n ops get pods -o wide
+```
+Do not remove a taint or cordon unless the task allows changing the nodes.
+
+</details>
+
+---
+
+## Question 19 (6%)
+
+**Domain:** Troubleshooting
+
+> Context: `kubectl config use-context cluster1`
+
+Pod `client` (namespace `tests`) cannot reach Service `server-svc` (namespace `tests`) on port 80, although the Service has endpoints. DNS resolves the name. Find why and fix it by changing **only** a NetworkPolicy.
+
+<details><summary>Show solution</summary>
+
+```bash
+kubectl -n tests exec client -- wget -qO- -T 3 server-svc
+kubectl -n tests get netpol
+kubectl -n tests describe netpol
+kubectl -n tests get pods --show-labels
+```
+Find the policy whose `podSelector` selects the server Pods and look at its `ingress` rules: the allowed `podSelector` label or port usually does not match `client`'s labels (for example `role=frontend` vs `role=client`) or the port is 8080 instead of 80.
+```bash
+kubectl -n tests edit netpol <name>     # fix labels/port
+kubectl -n tests exec client -- wget -qO- -T 3 server-svc
+```
+Do not delete the policy: that removes the restriction instead of fixing it.
+
+</details>
+
+---
+
+*These solutions are written for practice. Always verify commands against the official documentation and your cluster version.*
