@@ -34,7 +34,8 @@ Four themes (Midnight, Forest, Graphite, Light), switchable from the top bar.
 - **Calendar** heatmap, scheduling, and an auto-plan that spreads the syllabus to your exam date.
 - **Reminders**: `.ics` daily reminder and browser notifications.
 - **Community**: leaderboard, activity feed, public profiles (opt-out in Settings) and discussion channels.
-- Accounts with scrypt-hashed passwords and session cookies.
+- Accounts with scrypt-hashed passwords and session cookies, plus one-time **recovery codes** for forgotten passwords (no email needed).
+- **Privacy switch**: hide yourself from the leaderboard, activity feed and public profiles with one toggle in Community or Settings.
 
 ## Run locally
 
@@ -63,6 +64,13 @@ node scripts/build-mocks.js  # mock exam pages from content/mock-src/exam*.txt
 ```
 
 Domain weights are defined in `scripts/build-curriculum.js` (from the CNCF curriculum PDF).
+
+## Owner tools
+
+```bash
+# reset a user's password (e.g. a user who lost both password and recovery code)
+fly ssh console -a nayeeman49-cka-tracker -C "node scripts/reset-password.js <username> <new-password>"
+```
 
 ## Deployment
 

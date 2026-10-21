@@ -114,6 +114,7 @@ function setSession(res, token) {
   res.setHeader('Set-Cookie', `sid=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24 * 90}${SECURE ? '; Secure' : ''}`);
 }
 
+try { db.exec('ALTER TABLE users ADD COLUMN recovery_hash TEXT'); } catch { /* column exists */ }
 const q = {
   userByName: db.prepare('SELECT * FROM users WHERE username = ?'),
   userById: db.prepare('SELECT * FROM users WHERE id = ?'),
@@ -225,7 +226,8 @@ app.post('/api/signup', (req, res) => {
   const token = crypto.randomBytes(32).toString('hex');
   q.insertSession.run(sha(token), Number(info.lastInsertRowid), Date.now());
   setSession(res, token);
-  res.json({ user: meUser(q.userById.get(Number(info.lastInsertRowid))) });
+  const recoveryCode = issueRecoveryCode(Number(info.lastInsertRowid));
+  res.json({ user: meUser(q.userById.get(Number(info.lastInsertRowid))), recoveryCode });
 });
 
 app.post('/api/login', (req, res) => {
@@ -242,6 +244,67 @@ app.post('/api/login', (req, res) => {
   q.insertSession.run(sha(token), u.id, Date.now());
   setSession(res, token);
   res.json({ user: meUser(u) });
+});
+
+// --- password recovery: one-time recovery codes (no email service needed) ---
+const makeRecoveryCode = () => {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const b = crypto.randomBytes(16);
+  let c = ''; for (let i = 0; i < 16; i++) c += A[b[i] % A.length];
+  return c.match(/.{4}/g).join('-');
+};
+const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const codeHash = c => sha('recovery:' + normCode(c));
+function issueRecoveryCode(userId) {
+  const code = makeRecoveryCode();
+  db.prepare('UPDATE users SET recovery_hash=? WHERE id=?').run(codeHash(code), userId);
+  return code;
+}
+function setPassword(userId, password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  db.prepare('UPDATE users SET salt=?, pass_hash=? WHERE id=?').run(salt, hashPassword(password, salt), userId);
+  db.prepare('DELETE FROM sessions WHERE user_id=?').run(userId); // sign out everywhere
+}
+const passwordOk = (u, pw) => {
+  const h = hashPassword(String(pw || ''), u.salt);
+  return crypto.timingSafeEqual(Buffer.from(h, 'hex'), Buffer.from(u.pass_hash, 'hex'));
+};
+
+// Forgot password: username + recovery code + new password. The code is single-use; a fresh one is returned.
+app.post('/api/password/recover', (req, res) => {
+  const username = String(req.body.username || '').trim();
+  if (limited('recover-ip:' + req.ip, 10) || limited('recover-user:' + username.toLowerCase(), 5)) return res.status(429).json({ error: 'Too many attempts, try again later' });
+  const newPassword = String(req.body.newPassword || '');
+  if (newPassword.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  const u = q.userByName.get(username);
+  const given = Buffer.from(codeHash(req.body.code), 'hex');
+  const stored = Buffer.from(u && u.recovery_hash ? u.recovery_hash : '0'.repeat(64), 'hex');
+  if (!u || !u.recovery_hash || given.length !== stored.length || !crypto.timingSafeEqual(given, stored)) {
+    return res.status(400).json({ error: 'Username or recovery code is not correct' });
+  }
+  setPassword(u.id, newPassword);
+  const newCode = issueRecoveryCode(u.id);
+  res.json({ ok: true, recoveryCode: newCode });
+});
+
+// Signed in: make a new recovery code (the old one stops working). Needs the current password.
+app.post('/api/me/recovery', auth, (req, res) => {
+  if (limited('recgen:' + req.user.id, 10)) return res.status(429).json({ error: 'Too many attempts, try again later' });
+  if (!passwordOk(req.user, req.body.password)) return res.status(403).json({ error: 'Current password is not correct' });
+  res.json({ recoveryCode: issueRecoveryCode(req.user.id) });
+});
+
+// Signed in: change password (signs out other devices).
+app.post('/api/me/password', auth, (req, res) => {
+  if (limited('chpw:' + req.user.id, 10)) return res.status(429).json({ error: 'Too many attempts, try again later' });
+  if (!passwordOk(req.user, req.body.password)) return res.status(403).json({ error: 'Current password is not correct' });
+  const np = String(req.body.newPassword || '');
+  if (np.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  setPassword(req.user.id, np);
+  const token = crypto.randomBytes(32).toString('hex');
+  q.insertSession.run(sha(token), req.user.id, Date.now());
+  setSession(res, token);
+  res.json({ ok: true });
 });
 
 app.post('/api/logout', (req, res) => {

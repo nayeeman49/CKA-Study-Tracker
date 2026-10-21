@@ -152,31 +152,59 @@ async function renderNow() {
 }
 
 // ---------- auth ----------
+function showRecoveryCode(code, onDone, title = 'Save your recovery code') {
+  const dlg = openDialog(`<h2>${title}</h2>
+    <p class="small muted">If you forget your password, this code is the <b>only way</b> to get back into your account. Store it somewhere safe (password manager, notes). It is shown once and works one time.</p>
+    <div class="reccode" id="rc" style="font:600 1.25rem/1.4 var(--mono,monospace);letter-spacing:.08em;text-align:center;padding:.8rem;border:1px dashed var(--line);border-radius:10px;margin:.8rem 0;user-select:all">${esc(code)}</div>
+    <div class="row"><button class="btn ghost" type="button" id="rcopy">Copy</button><button class="btn ghost" type="button" id="rdl">Download .txt</button></div>
+    <label class="row" style="font-weight:500;margin-top:1rem"><input id="rok" type="checkbox" style="width:auto"> I have saved my recovery code</label>
+    <div class="row" style="margin-top:.8rem"><button class="btn" id="rgo" disabled>Continue</button></div>`, d => {
+    d.addEventListener('cancel', e => e.preventDefault()); // must confirm
+    d.querySelector('#rok').onchange = e => { d.querySelector('#rgo').disabled = !e.target.checked; };
+    d.querySelector('#rcopy').onclick = async () => { try { await navigator.clipboard.writeText(code); toast('Copied ✔'); } catch { toast('Select the code and copy it manually'); } };
+    d.querySelector('#rdl').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`CKA Study Tracker recovery code\n${code}\nKeep this private. It resets your password once.\n`], { type: 'text/plain' })); a.download = 'cka-recovery-code.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+    d.querySelector('#rgo').onclick = () => { d.close(); onDone && onDone(); };
+  });
+  return dlg;
+}
 function renderAuth(mode = 'login') {
+  const forgot = mode === 'forgot';
   $app.innerHTML = `
   <div class="auth card">
     ${logoSvg('authlogo draw')}<h1>CKA Study Tracker</h1>
-    <p class="muted">Work through the Certified Kubernetes Administrator syllabus, keep a streak, and study alongside others.</p>
+    <p class="muted">${forgot ? 'Reset your password with the recovery code you saved when you signed up.' : 'Work through the Certified Kubernetes Administrator syllabus, keep a streak, and study alongside others.'}</p>
     <form id="authForm" autocomplete="on">
       <label for="u">Username</label><input id="u" name="username" type="text" autocomplete="username" required>
       ${mode === 'signup' ? `<label for="dn">Display name <span class="muted">(optional)</span></label><input id="dn" type="text" maxlength="40">` : ''}
-      <label for="p">Password</label><input id="p" name="password" type="password" autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" required minlength="${mode === 'signup' ? 8 : 1}">
+      ${forgot ? `<label for="rc">Recovery code</label><input id="rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX" required>
+      <label for="p">New password</label><input id="p" name="password" type="password" autocomplete="new-password" required minlength="8">` :
+      `<label for="p">Password</label><input id="p" name="password" type="password" autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" required minlength="${mode === 'signup' ? 8 : 1}">`}
       <div class="err" id="err"></div>
-      <div class="row" style="margin-top:.6rem"><button class="btn" type="submit">${mode === 'signup' ? 'Create account' : 'Log in'}</button>
-      <button class="btn ghost" type="button" id="swap">${mode === 'signup' ? 'I have an account' : 'Create an account'}</button></div>
+      <div class="row" style="margin-top:.6rem"><button class="btn" type="submit">${forgot ? 'Reset password' : mode === 'signup' ? 'Create account' : 'Log in'}</button>
+      <button class="btn ghost" type="button" id="swap">${forgot ? 'Back to log in' : mode === 'signup' ? 'I have an account' : 'Create an account'}</button></div>
+      ${mode === 'login' ? `<p class="small" style="margin:.8rem 0 0"><a href="#" id="forgot">Forgot your password?</a></p>` : ''}
     </form>
     <p class="small muted" style="margin:1rem 0 0"><a href="#/intro">▶ Watch the cluster intro</a></p>
   </div>`;
   { const app = document.getElementById('app'); app.classList.remove('route-enter'); void app.offsetWidth; app.classList.add('route-enter'); }
-  document.getElementById('swap').onclick = () => renderAuth(mode === 'signup' ? 'login' : 'signup');
+  document.getElementById('swap').onclick = () => renderAuth(forgot ? 'login' : mode === 'signup' ? 'login' : 'signup');
+  const fg = document.getElementById('forgot'); if (fg) fg.onclick = e => { e.preventDefault(); renderAuth('forgot'); };
   document.getElementById('authForm').onsubmit = async e => {
     e.preventDefault();
-    const body = { username: u.value, password: p.value };
-    if (mode === 'signup') body.displayName = document.getElementById('dn').value;
+    const err = document.getElementById('err');
     try {
+      if (forgot) {
+        const j = await api('POST', '/api/password/recover', { username: u.value, code: document.getElementById('rc').value, newPassword: p.value });
+        showRecoveryCode(j.recoveryCode, () => { renderAuth('login'); toast('Password changed. Log in with your new password.'); }, 'Password changed. Here is your new recovery code');
+        return;
+      }
+      const body = { username: u.value, password: p.value };
+      if (mode === 'signup') body.displayName = document.getElementById('dn').value;
       const j = await api('POST', mode === 'signup' ? '/api/signup' : '/api/login', body);
-      S.user = j.user; await loadProgress(); location.hash = '#/'; render();
-    } catch (er) { document.getElementById('err').textContent = er.message; }
+      S.user = j.user; await loadProgress();
+      const go = () => { location.hash = '#/'; render(); };
+      if (j.recoveryCode) showRecoveryCode(j.recoveryCode, go); else go();
+    } catch (er) { err.textContent = er.message; }
   };
 }
 
@@ -637,6 +665,11 @@ async function renderCommunity() {
   const th = (k, t) => `<th data-sort="${k}" style="${lb.sort === k ? 'color:var(--ink)' : ''}">${t}${lb.sort === k ? ' ▾' : ''}</th>`;
   $app.innerHTML = shell('community', `
     <h1>Community</h1>
+    <div class="card privacy ${S.user.isPublic ? '' : 'off'}" style="margin-bottom:1rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div style="min-width:220px;flex:1"><b>${S.user.isPublic ? '🌐 Your progress is public' : '🔒 Your progress is private'}</b>
+        <div class="muted small">${S.user.isPublic ? 'You appear on the leaderboard and in the activity feed, and others can open your profile.' : 'You are hidden from other learners: no leaderboard entry, no activity feed items and no public profile. Only you can see your stats.'}</div></div>
+      <label class="row" style="font-weight:600;gap:.6rem;cursor:pointer;white-space:nowrap"><input id="pubtoggle" type="checkbox" role="switch" style="width:auto" ${S.user.isPublic ? 'checked' : ''}> Public progress</label>
+    </div>
     <div class="grid split">
       <div class="card" style="min-width:0;overflow-x:auto"><h2>Leaderboard</h2>
         <table><thead><tr><th>#</th><th>Learner</th>${th('streak', '🔥 Streak')}${th('week', '7-day time')}${th('progress', 'Readiness')}${th('done', 'Done')}</tr></thead><tbody>
@@ -649,6 +682,10 @@ async function renderCommunity() {
         ${F.feed.length ? F.feed.map(f => `<div class="li" style="padding:.4rem 0;border-top:1px solid var(--line)"><a href="#/u/${encodeURIComponent(f.username)}">${esc(f.displayName)}</a> finished <a href="#/lesson/${esc(f.itemId)}" target="_blank" rel="noopener">${esc(f.title)}</a><div class="muted small">${new Date(f.at).toLocaleString()}</div></div>`).join('') : '<p class="muted">Nothing yet.</p>'}</div>
     </div>`);
   document.querySelectorAll('th[data-sort]').forEach(t => t.onclick = () => { lb.sort = t.dataset.sort; renderCommunity(); });
+  document.getElementById('pubtoggle').onchange = async e => {
+    try { const j = await api('PATCH', '/api/me', { isPublic: e.target.checked }); S.user = j.user; toast(j.user.isPublic ? 'Your progress is now public' : 'Your progress is now private'); renderCommunity(); }
+    catch (er) { e.target.checked = !e.target.checked; toast(er.message); }
+  };
 }
 async function renderProfile(name) {
   const j = await api('GET', '/api/users/' + encodeURIComponent(name));
@@ -843,7 +880,25 @@ function renderSettings() {
       <label for="sg">Daily study goal (minutes)</label><input id="sg" type="number" min="5" max="600" value="${u.dailyGoalMin}">
       <label class="row" style="font-weight:500;margin-top:1rem"><input id="sp" type="checkbox" style="width:auto" ${u.isPublic ? 'checked' : ''}> Show me on the leaderboard and let others view my progress</label>
       <div class="row" style="margin-top:1rem"><button class="btn">Save</button><button class="btn ghost" type="button" id="lo">Log out</button></div>
-    </form></div>`);
+    </form></div>
+    <div class="card" style="max-width:520px;margin-top:1rem"><h2>Account security</h2>
+      <form id="pwf"><label for="cp">Current password</label><input id="cp" type="password" autocomplete="current-password" required>
+        <label for="np">New password <span class="muted">(8+ characters)</span></label><input id="np" type="password" autocomplete="new-password" minlength="8">
+        <div class="row" style="margin-top:1rem"><button class="btn" type="submit" id="chpw">Change password</button><button class="btn ghost" type="button" id="newrec">Generate a new recovery code</button></div>
+      </form>
+      <p class="small muted" style="margin:.8rem 0 0">A recovery code lets you reset a forgotten password. Generating a new one cancels the old one. Enter your current password above first.</p>
+    </div>`);
+  pwf.onsubmit = async e => {
+    e.preventDefault();
+    if (!np.value) return toast('Enter a new password, or use the recovery code button');
+    try { await api('POST', '/api/me/password', { password: cp.value, newPassword: np.value }); cp.value = np.value = ''; toast('Password changed ✔'); }
+    catch (er) { toast(er.message); }
+  };
+  newrec.onclick = async () => {
+    if (!cp.value) return toast('Enter your current password first');
+    try { const j = await api('POST', '/api/me/recovery', { password: cp.value }); cp.value = ''; showRecoveryCode(j.recoveryCode, () => toast('New recovery code saved ✔'), 'Your new recovery code'); }
+    catch (er) { toast(er.message); }
+  };
   sf.onsubmit = async e => {
     e.preventDefault();
     try { const j = await api('PATCH', '/api/me', { displayName: sd.value, examDate: se.value || null, dailyGoalMin: +sg.value, isPublic: sp.checked }); S.user = j.user; toast('Saved ✔'); renderSettings(); }
