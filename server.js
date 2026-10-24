@@ -100,6 +100,13 @@ function limited(key, max = 10, windowMs = 10 * 60 * 1000) {
   arr.push(now); hits.set(key, arr);
   return arr.length > max;
 }
+// Behind Fly's proxy req.ip is the proxy for everyone, so use the real client address Fly sets.
+const clientIp = req => String(req.headers['fly-client-ip'] || req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim() || 'unknown';
+// Failure-only limiter: only wrong attempts count, and a success clears the counter.
+const failCount = (key, windowMs = 10 * 60 * 1000) => { const now = Date.now(); const a = (hits.get(key) || []).filter(t => now - t < windowMs); hits.set(key, a); return a.length; };
+const failHit = key => { const a = hits.get(key) || []; a.push(Date.now()); hits.set(key, a); };
+const failClear = key => hits.delete(key);
+setInterval(() => { const cut = Date.now() - 3600e3; for (const [k, v] of hits) { if (!v.length || v[v.length - 1] < cut) hits.delete(k); } }, 10 * 60 * 1000).unref();
 
 function parseCookies(req) {
   const out = {};
@@ -214,7 +221,7 @@ app.get('/api/curriculum', (req, res) => res.json(curriculum));
 
 // --- auth ---
 app.post('/api/signup', (req, res) => {
-  if (limited('signup:' + req.ip, 8)) return res.status(429).json({ error: 'Too many attempts, try later' });
+  if (limited('signup:' + clientIp(req), 30)) return res.status(429).json({ error: 'Too many attempts, try later' });
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
   const displayName = String(req.body.displayName || username).trim().slice(0, 40);
@@ -231,15 +238,20 @@ app.post('/api/signup', (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
-  if (limited('login:' + req.ip, 15)) return res.status(429).json({ error: 'Too many attempts, try later' });
-  const u = q.userByName.get(String(req.body.username || '').trim());
+  const uname = String(req.body.username || '').trim();
+  const ipKey = 'loginfail-ip:' + clientIp(req), userKey = 'loginfail-user:' + uname.toLowerCase();
+  // only wrong passwords count; a correct login clears the counter
+  if (failCount(ipKey) >= 60 || failCount(userKey) >= 15) return res.status(429).json({ error: 'Too many wrong passwords. Wait a few minutes, or use "Forgot your password?"' });
+  const u = q.userByName.get(uname);
   const pw = String(req.body.password || '');
   // constant-ish time even for unknown users
   const salt = u ? u.salt : 'x'.repeat(32);
   const hash = hashPassword(pw, salt);
   if (!u || !crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(u.pass_hash, 'hex'))) {
+    failHit(ipKey); failHit(userKey);
     return res.status(401).json({ error: 'Wrong username or password' });
   }
+  failClear(userKey);
   const token = crypto.randomBytes(32).toString('hex');
   q.insertSession.run(sha(token), u.id, Date.now());
   setSession(res, token);
@@ -273,7 +285,7 @@ const passwordOk = (u, pw) => {
 // Forgot password: username + recovery code + new password. The code is single-use; a fresh one is returned.
 app.post('/api/password/recover', (req, res) => {
   const username = String(req.body.username || '').trim();
-  if (limited('recover-ip:' + req.ip, 10) || limited('recover-user:' + username.toLowerCase(), 5)) return res.status(429).json({ error: 'Too many attempts, try again later' });
+  // No attempt limit: a code is 16 random characters (about 80 bits), so guessing is not feasible, and resets are unlimited.
   const newPassword = String(req.body.newPassword || '');
   if (newPassword.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
   const u = q.userByName.get(username);
@@ -283,21 +295,24 @@ app.post('/api/password/recover', (req, res) => {
     return res.status(400).json({ error: 'Username or recovery code is not correct' });
   }
   setPassword(u.id, newPassword);
+  failClear('loginfail-user:' + u.username.toLowerCase()); // a reset also lifts any login lockout
   const newCode = issueRecoveryCode(u.id);
   res.json({ ok: true, recoveryCode: newCode });
 });
 
 // Signed in: make a new recovery code (the old one stops working). Needs the current password.
 app.post('/api/me/recovery', auth, (req, res) => {
-  if (limited('recgen:' + req.user.id, 10)) return res.status(429).json({ error: 'Too many attempts, try again later' });
-  if (!passwordOk(req.user, req.body.password)) return res.status(403).json({ error: 'Current password is not correct' });
+  if (failCount('pwcheck:' + req.user.id) >= 15) return res.status(429).json({ error: 'Too many wrong passwords, try again in a few minutes' });
+  if (!passwordOk(req.user, req.body.password)) { failHit('pwcheck:' + req.user.id); return res.status(403).json({ error: 'Current password is not correct' }); }
+  failClear('pwcheck:' + req.user.id);
   res.json({ recoveryCode: issueRecoveryCode(req.user.id) });
 });
 
 // Signed in: change password (signs out other devices).
 app.post('/api/me/password', auth, (req, res) => {
-  if (limited('chpw:' + req.user.id, 10)) return res.status(429).json({ error: 'Too many attempts, try again later' });
-  if (!passwordOk(req.user, req.body.password)) return res.status(403).json({ error: 'Current password is not correct' });
+  if (failCount('pwcheck:' + req.user.id) >= 15) return res.status(429).json({ error: 'Too many wrong passwords, try again in a few minutes' });
+  if (!passwordOk(req.user, req.body.password)) { failHit('pwcheck:' + req.user.id); return res.status(403).json({ error: 'Current password is not correct' }); }
+  failClear('pwcheck:' + req.user.id);
   const np = String(req.body.newPassword || '');
   if (np.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
   setPassword(req.user.id, np);
